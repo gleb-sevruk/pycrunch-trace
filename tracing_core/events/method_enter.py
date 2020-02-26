@@ -43,9 +43,11 @@ class LineExecutionEvent(Event):
 class MethodExitEvent(Event):
     cursor: ExecutionCursor
     return_variables: Variables
+    locals: Variables
 
     def __init__(self, cursor: ExecutionCursor):
         self.cursor = cursor
         self.return_variables = Variables()
+        self.locals = Variables()
         self.event_name = 'method_exit'
 

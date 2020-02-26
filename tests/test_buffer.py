@@ -10,14 +10,12 @@ def test_simple():
     print(to_string(command_stack))
 
 
-def to_string(command_stack):
-    dumps = json.dumps(json.loads(jsonpickle.encode(command_stack, unpicklable=False)), indent=2)
-    return dumps
+
 
 
 def build_testing_events():
     command_stack = []
-    method_enter_event = e.MethodEnterEvent(e.ExecutionCursor(config.absolute_path, 3))
+    method_enter_event = e.MethodEnterEvent(e.ExecutionCursor(config.absolute_path, 2))
     method_enter_event.input_variables.push_variable('some_number', 1)
     command_stack.append(method_enter_event)
     line_1 = e.LineExecutionEvent(e.ExecutionCursor(config.absolute_path, 3))

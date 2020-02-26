@@ -5,5 +5,5 @@ def some_method(some_number):
     result = a + b + some_number
     return result
 
-x = some_method(1)
-print(x)
+# x = some_method(1)
+# print(x)
