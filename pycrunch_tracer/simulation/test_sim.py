@@ -2,13 +2,12 @@ import inspect
 
 from pycrunch.insights import trace
 
-import config
-import tracing_core.simulation.models as sim
-from tracing_core.serialization.shared import to_string
-from tracing_core.session.snapshot import snapshot
-from tracing_core.workflow.simple_tracer import SimpleTracer
+import pycrunch_tracer.simulation.models as sim
+from pycrunch_tracer.serialization import to_string
+from pycrunch_tracer.session.snapshot import snapshot
+from pycrunch_tracer.tracing.simple_tracer import SimpleTracer
 
-absolute_path = '/Users/gleb/code/pycrunch_tracing/samples/module_a.py'
+absolute_path = '/pycrunch_tracer/samples/module_a.py'
 
 def test_sim1():
     def code_method() -> sim.Code:

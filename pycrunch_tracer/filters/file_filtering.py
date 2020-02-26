@@ -1,19 +1,22 @@
 class FileFilter:
     def should_trace(self, filename: str) -> bool:
-        start_patterns = ('/Users/gleb/code/pycrunch_tracing/',)
-        tuple_x = (
+        start_patterns = (
+            '/Users/gleb/code/pycrunch_tracing/',
+            '/Users/gleb/code/bc/briteapps-admin/',
+        )
+        end_patterns = (
             'module_a.py',
             'module_b.py',
             'module_c.py',
             'invalid_picker_with_exception.py',
-            'copyreg.py',
+            # 'copyreg.py',
         )
 
         ending_exclusions = ('api/tracing.py',)
         # return True
         if filename.endswith(ending_exclusions):
             return False
-        if filename.endswith(tuple_x):
+        if filename.endswith(end_patterns):
             return True
         if filename.startswith(start_patterns):
             return True

@@ -1,7 +1,7 @@
 import sys
 
-from gleb_trace import GlebTracer
-from src.my_code import cho_ti_suka
+from pycrunch_tracer.gleb_trace import GlebTracer
+from pycrunch_tracer.src.my_code import cho_ti_suka
 
 
 def trace_calls_and_returns(frame, event, arg):

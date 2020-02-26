@@ -2,8 +2,9 @@ import sys
 import uuid
 from time import sleep
 
-from tracing_core.api import network_client
-from tracing_core.workflow.simple_tracer import SimpleTracer
+from pycrunch_tracer.api import network_client
+from pycrunch_tracer.session.snapshot import snapshot
+from pycrunch_tracer.tracing.simple_tracer import SimpleTracer
 
 
 class Yoba:
@@ -52,7 +53,11 @@ class Yoba:
 
     def stop(self):
         sys.settrace(None)
+        print('tracing complete')
         self.is_tracing = False
+        snapshot.save('a', self.command_buffer)
+
+        print('tracing complete')
         self._client.push_message(self.command_buffer)
         sleep(1)
         self._client.disconnect()

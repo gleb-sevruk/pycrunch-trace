@@ -64,7 +64,7 @@ class PyTracer(object):
         )
 
     def log(self, marker, *args):
-        """For hard-core logging of what this tracer is doing."""
+        """For hard-core pc_logging of what this tracer is doing."""
         with open("/tmp/debug_trace.txt", "a") as f:
             f.write("{} {:x}.{:x}[{}] {:x} {}\n".format(
                 marker,

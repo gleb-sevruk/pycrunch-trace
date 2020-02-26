@@ -5,3 +5,4 @@ aiohttp==3.6.2
 aiohttp-devtools
 aiohttp_debugtoolbar
 jsonpickle
+wheel

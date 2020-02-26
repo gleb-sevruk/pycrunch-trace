@@ -1,7 +1,5 @@
-import tracing_core.events.method_enter as e
-import config
-import json
-import jsonpickle
+import pycrunch_tracer.events.method_enter as e
+from pycrunch_tracer import config
 
 
 def test_simple():

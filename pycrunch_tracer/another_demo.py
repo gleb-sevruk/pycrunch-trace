@@ -1,10 +1,8 @@
-import pickle
 import sys
-from samples import module_a, module_c, invalid_picker_with_exception
-from samples import module_b
-from tracing_core.session.snapshot import snapshot
+from pycrunch_tracer.samples import invalid_picker_with_exception
+from pycrunch_tracer.session.snapshot import snapshot
 
-from tracing_core.workflow.simple_tracer import SimpleTracer
+from pycrunch_tracer.tracing.simple_tracer import SimpleTracer
 
 #
 event_buffer = []

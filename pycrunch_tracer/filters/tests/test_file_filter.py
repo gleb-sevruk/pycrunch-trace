@@ -1,5 +1,5 @@
-import config
-from tracing_core.filters.file_filtering import FileFilter
+from pycrunch_tracer import config
+from pycrunch_tracer.filters import FileFilter
 
 
 def test_included():
