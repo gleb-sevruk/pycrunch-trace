@@ -3,18 +3,21 @@ import uuid
 from time import sleep
 
 from pycrunch_tracer.api import network_client
+from pycrunch_tracer.file_system.session_store import SessionStore
 from pycrunch_tracer.session.snapshot import snapshot
 from pycrunch_tracer.tracing.simple_tracer import SimpleTracer
 
 
 class Yoba:
+    _tracer: SimpleTracer
+
     def __init__(self):
         self.default_host = 'http://0.0.0.0:8080'
         self.command_buffer = []
         self.is_tracing = False
         self.session_name = None
         self._tracer = None
-        self._client : network_client.TracingClient = None
+        self._client: network_client.TracingClient = None
         self.host = None
 
     def generate_session_name(self) -> str:
@@ -29,7 +32,7 @@ class Yoba:
 
         self._client = network_client.TracingClient(self.host)
 
-        self._tracer = SimpleTracer(self.command_buffer)
+        self._tracer = SimpleTracer(self.command_buffer, self.session_name)
         sys.settrace(self._tracer.simple_tracer)
 
         self.is_tracing = True
@@ -53,11 +56,15 @@ class Yoba:
 
     def stop(self):
         sys.settrace(None)
+
+        import pydevd_pycharm
+        pydevd_pycharm.settrace('localhost', port=54446, stdoutToServer=True, stderrToServer=True)
         print('tracing complete')
         self.is_tracing = False
-        snapshot.save('a', self.command_buffer)
+        self._tracer.session.buffer_became_available(self.command_buffer)
+        # snapshot.save('a', self.command_buffer)
 
         print('tracing complete')
-        self._client.push_message(self.command_buffer)
+        self._client.push_message(self._tracer.session)
         sleep(1)
         self._client.disconnect()

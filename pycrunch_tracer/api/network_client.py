@@ -1,3 +1,5 @@
+import pickle
+
 import socketio
 
 from . import version
@@ -34,10 +36,12 @@ class TracingClient:
         def disconnect():
             print("CLIENT: I'm disconnected!")
 
-    def push_message(self, command_buffer):
+    def push_message(self, entire_tracing_sesssion):
+        dumps = pickle.dumps(entire_tracing_sesssion)
+        print(f'dumped {len(dumps)} bytes')
         self.sio.emit('event', dict(
-            action='updated_buffer',
-            buffer=to_string(command_buffer),
+            action='new_recording',
+            buffer=dumps,
         ))
 
     def disconnect(self):

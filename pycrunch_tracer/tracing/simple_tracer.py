@@ -2,6 +2,7 @@ import collections
 
 import pycrunch_tracer.simulation.models as models
 import pycrunch_tracer.events.method_enter as events
+from pycrunch_tracer.file_system.trace_session import TraceSession
 from pycrunch_tracer.filters import FileFilter
 from pycrunch_tracer.simulation import EventKeys
 
@@ -27,11 +28,13 @@ class CallStack:
 class SimpleTracer:
     event_buffer: list
     call_stack: CallStack
+    session: TraceSession
 
-    def __init__(self, event_buffer):
+    def __init__(self, event_buffer, session_name):
         self.event_buffer = event_buffer
         self.file_filter = FileFilter()
         self.call_stack = CallStack()
+        self.session = TraceSession(session_name)
         pass
 
     def simple_tracer(self, frame: models.Frame, event: str, arg):
@@ -39,11 +42,14 @@ class SimpleTracer:
         # print(f_type.__module__ + '.' + f_type.__qualname__)
         co = frame.f_code
         func_name = co.co_name
-        func_filename = co.co_filename
+        file_path_under_cursor = co.co_filename
         line_no = frame.f_lineno
-        if not self.file_filter.should_trace(func_filename):
+        if not self.file_filter.should_trace(file_path_under_cursor):
+            self.session.will_skip_file(file_path_under_cursor)
             # Ignore calls not in this module
             return
+
+        self.session.did_enter_traceable_file(file_path_under_cursor)
 
         self.process_events(event, frame, arg)
 
@@ -77,5 +83,6 @@ class SimpleTracer:
 
     def push_traceable_variables(self, frame, variables):
         for (name, value) in frame.f_locals.items():
+            # todo use variable values diffing
             variables.push_variable(name, value)
 

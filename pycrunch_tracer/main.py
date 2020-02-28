@@ -2,17 +2,24 @@ import asyncio
 import io
 
 # import aiohttp_debugtoolbar
+import pickle
 
 from aiohttp import web
 import socketio
 
 from pycrunch_tracer import config
+from pycrunch_tracer.file_system.persisted_session import LazyLoadedSession
+from pycrunch_tracer.file_system.session_store import SessionStore
+from pycrunch_tracer.file_system.trace_session import TraceSession
 from pycrunch_tracer.serialization import to_string
 from pycrunch_tracer.session import active_clients
 from pycrunch_tracer.session.snapshot import snapshot
 
 import cgitb
 cgitb.enable(format='text')
+
+
+
 
 def run():
     loop = asyncio.get_event_loop()
@@ -45,9 +52,13 @@ def run():
                 ))
 
 
-    async def notify_about_updated_buffer(req, sid):
-        event_buffer = req.get('buffer')
-        await sio.emit('reply', event_buffer)
+    async def new_recording(req, sid):
+        event_buffer_bytes = req.get('buffer')
+        # todo this is double loading
+        x: TraceSession = pickle.loads(event_buffer_bytes)
+        x.save()
+        await load_sessions(None)
+        # await sio.emit('reply', event_buffer)
 
 
     @sio.event
@@ -59,11 +70,39 @@ def run():
             await load_buffer_event(action, sid)
         elif action == 'load_file':
             await load_file_event(req, sid)
-        elif action == 'updated_buffer':
-            print('updated_buffer')
-            await notify_about_updated_buffer(req, sid)
+        elif action == 'load_sessions':
+            await load_sessions(sid)
+        elif action == 'load_single_session':
+            await load_single_session(req, sid)
+        elif action == 'new_recording':
+            print('new_recording')
+            await new_recording(req, sid)
         else:
             await sio.emit('reply_unknown', room=sid)
+
+    async def load_sessions(sid):
+        store = SessionStore()
+        all_names = store.all_sessions()
+        result = []
+        for name in all_names:
+            lazy_loaded = store.load_session(name)
+            lazy_loaded.load_metadata()
+            metadata = lazy_loaded.raw_metadata
+            metadata['short_name'] = name
+            result.append(metadata)
+
+        print('Loading sessions')
+        await sio.emit('session_list_loaded', result, room=sid)
+        pass
+
+    async def load_single_session(req, sid):
+        store = SessionStore()
+        session_name = req.get('session_name')
+        print('Loading session ' + session_name)
+        ses = store.load_session(session_name)
+
+        await sio.emit('reply', to_string(ses.load_buffer()), room=sid)
+        pass
 
 
     async def load_file_event(req, sid):
