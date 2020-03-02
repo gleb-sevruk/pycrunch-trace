@@ -6,11 +6,11 @@ class HumanReadableByteSize:
         return self.human_readable_size(self.total_bytes)
 
     @staticmethod
-    def human_readable_size(size, decimal_places=3):
+    def human_readable_size(size, decimal_places=1):
         if size < 1024:
             return f"{size} bytes"
-        for unit in ['B', 'KiB', 'MiB', 'GiB', 'TiB']:
+        for unit in ['B', 'Kb', 'MB', 'GB', 'TB']:
             if size < 1024.0:
                 break
             size /= 1024.0
-        return f"{size:.{decimal_places}f}{unit}"
+        return f"{size:.{decimal_places}f} {unit}"

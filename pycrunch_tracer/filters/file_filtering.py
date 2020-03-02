@@ -1,3 +1,6 @@
+from random import Random
+
+
 class FileFilter:
     def should_trace(self, filename: str) -> bool:
         start_patterns = (
@@ -13,7 +16,10 @@ class FileFilter:
         )
 
         ending_exclusions = ('api/tracing.py',)
-        # return True
+
+        # r= Random()
+        # if r.choice(range(0, 10)) == 1:
+        #     return True
         if filename.endswith(ending_exclusions):
             return False
         if filename.endswith(end_patterns):

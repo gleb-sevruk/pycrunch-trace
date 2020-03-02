@@ -44,6 +44,7 @@ class LazyLoadedSession:
                 # result = json.loads(buffer)
             # except:
             result = pickle.loads(buffer)
+
             return result
 
     def load_metadata(self):
@@ -57,6 +58,7 @@ class LazyLoadedSession:
             meta.excluded_files = json_dict.get('events_in_session')
             meta.events_in_session = json_dict.get('events_in_session')
             meta.file_size_in_bytes = json_dict.get('file_size_in_bytes')
+            meta.file_size_on_disk = json_dict.get('file_size_on_disk')
             meta.name = json_dict.get('name')
             self.metadata = meta
 
@@ -102,4 +104,6 @@ class PersistedSession:
 
     @classmethod
     def load_from_directory(cls, load_from_directory: Path) -> LazyLoadedSession:
-        return LazyLoadedSession(load_from_directory.joinpath(PersistedSession.recording_filename), load_from_directory.joinpath(PersistedSession.metadata_filename))
+        joinpath = load_from_directory.joinpath(PersistedSession.recording_filename)
+        print(joinpath)
+        return LazyLoadedSession(joinpath, load_from_directory.joinpath(PersistedSession.metadata_filename))

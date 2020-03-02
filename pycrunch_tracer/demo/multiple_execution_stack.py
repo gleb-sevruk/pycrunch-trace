@@ -20,7 +20,7 @@ def a(x):
     return res
 
 yoba = Yoba()
-yoba.start()
+yoba.start('multiple_stack')
 
 a(2)
 

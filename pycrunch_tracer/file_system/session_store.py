@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List
 
-from pycrunch_tracer.file_system.persisted_session import PersistedSession
+from pycrunch_tracer.file_system.persisted_session import PersistedSession, LazyLoadedSession
 
 
 class SessionStore:
@@ -19,7 +19,7 @@ class SessionStore:
                 result.append(maybe_be_folder.name)
         return result
 
-    def load_session(self, session_name: str):
+    def load_session(self, session_name: str) -> LazyLoadedSession:
         self.ensure_recording_directory_created()
         load_from = self.recording_directory.joinpath(session_name)
         session = PersistedSession.load_from_directory(load_from)

@@ -26,16 +26,17 @@ class ActiveConnections:
         self.clients.remove(reference)
         self.remove_if_any_tracer(reference)
 
-    def remove_if_any_tracer(self, reference: str):
+    def remove_if_any_tracer(self, reference: str) -> bool:
         possible_tracer = self.find_tracer_with_id(reference)
         if not possible_tracer:
-            return
+            return False
 
         self.tracers_online.remove(possible_tracer)
+        return True
 
     def find_tracer_with_id(self, reference) -> Optional[LiveSession]:
         for tracer in self.tracers_online:
-            if tracer.connection_id == reference:
+            if tracer.sid == reference:
                 return tracer
 
         return None
@@ -44,8 +45,6 @@ class ActiveConnections:
         self.tracers_online.append(LiveSession(sid, version))
         pass
 
-    def tracer_did_disconnect(self, sid, version):
-
-        self.remove_if_any_tracer(sid)
-        pass
+    def tracer_did_disconnect(self, sid):
+        return self.remove_if_any_tracer(sid)
 

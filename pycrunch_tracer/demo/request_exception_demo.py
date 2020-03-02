@@ -17,7 +17,7 @@ def some_method():
 
 
 yoba = Yoba()
-yoba.start()
+yoba.start('request_exce')
 
 some_method()
 

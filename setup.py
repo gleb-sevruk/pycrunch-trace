@@ -19,6 +19,7 @@ setup(name='pycrunch_tracer',
           'python-socketio>=4',
           'aiohttp',
           'jsonpickle',
+          'PyYAML'
       ],
       include_package_data=True,
       zip_safe=False)

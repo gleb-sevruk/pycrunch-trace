@@ -27,23 +27,32 @@ def test_sim1():
         frame.f_locals = dict(some_number=1)
         return frame
     event_buffer = []
-    sut = SimpleTracer(event_buffer)
+    sut = SimpleTracer(event_buffer, 'testing')
     sut.simple_tracer(get_frame(2), sim.EventKeys.call, None)
     sut.simple_tracer(get_frame(3), sim.EventKeys.line, None)
     sut.simple_tracer(get_frame(4), sim.EventKeys.line, None)
+
+    sut.simple_tracer(get_frame(2), sim.EventKeys.call, None)
+    sut.simple_tracer(get_frame(3), sim.EventKeys.line, None)
+    sut.simple_tracer(get_frame(2), sim.EventKeys.call, None)
+    sut.simple_tracer(get_frame(3), sim.EventKeys.line, None)
+    sut.simple_tracer(get_frame(4), sim.EventKeys.line, None)
+    sut.simple_tracer(get_frame(4), sim.EventKeys.event_return, None)
+    sut.simple_tracer(get_frame(4), sim.EventKeys.line, None)
+    sut.simple_tracer(get_frame(4), sim.EventKeys.event_return, None)
+
     sut.simple_tracer(get_frame(5), sim.EventKeys.line, None)
     sut.simple_tracer(get_frame(6), sim.EventKeys.line, None)
     sut.simple_tracer(get_frame(6), sim.EventKeys.event_return, 6)
-    some_crap(1)
+
+    coe = sut.simulation.simulated_code()
+    trace(coe=coe)
+    trace(sixt=to_string(event_buffer[6]))
     trace(buffer=to_string(event_buffer))
     snapshot.save('a', event_buffer)
     # trace(x=x)
     pass
 
-def some_crap(number):
-    x = inspect.currentframe()
-    a = 2
-    return number + 2
 
 
 

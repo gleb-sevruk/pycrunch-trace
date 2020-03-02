@@ -23,7 +23,7 @@ class Yoba:
     def generate_session_name(self) -> str:
         return str(uuid.uuid4())
 
-    def start(self, host: str = None, session_name: str = None):
+    def start(self, session_name: str = None, host: str = None):
         if self.is_tracing:
             raise Exception('PyCrunch tracer ERROR: tracing already started')
 
@@ -57,14 +57,14 @@ class Yoba:
     def stop(self):
         sys.settrace(None)
 
-        import pydevd_pycharm
-        pydevd_pycharm.settrace('localhost', port=54446, stdoutToServer=True, stderrToServer=True)
-        print('tracing complete')
+        # import pydevd_pycharm
+        # pydevd_pycharm.settrace('localhost', port=44441, stdoutToServer=True, stderrToServer=True)
+        print('tracing complete, sending results')
         self.is_tracing = False
         self._tracer.session.buffer_became_available(self.command_buffer)
         # snapshot.save('a', self.command_buffer)
 
-        print('tracing complete')
         self._client.push_message(self._tracer.session)
-        sleep(1)
+        print('tracing --- sent results to backend')
+        sleep(10)
         self._client.disconnect()

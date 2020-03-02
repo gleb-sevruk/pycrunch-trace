@@ -12,7 +12,7 @@ def xxx(x: int):
 
 
 yoba = Yoba()
-yoba.start(session_name='network_demo2')
+yoba.start(session_name='network_demo3')
 
 
 def run(param):

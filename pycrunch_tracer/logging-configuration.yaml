@@ -1,0 +1,35 @@
+version: 1
+formatters:
+  simple:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  basic:
+    format: '%(name)s - %(message)s'
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: simple
+    stream: ext://sys.stdout
+loggers:
+  pycrunch:
+    level: DEBUG
+  sampleLogger:
+    level: DEBUG
+    handlers: [console]
+    propagate: no
+  werkzeug:
+    level: ERROR
+  engineio:
+    level: WARN
+  socketio:
+    level: WARN
+
+root:
+  level: DEBUG
+  handlers: [console]
+#  handlers: []
+
+#xx    x
+#xx    x
+#xx    x
+#xx    x

@@ -6,3 +6,5 @@ aiohttp-devtools
 aiohttp_debugtoolbar
 jsonpickle
 wheel
+PyYAML
+protobuf==3.11.3
