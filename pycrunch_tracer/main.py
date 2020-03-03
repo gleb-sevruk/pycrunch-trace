@@ -11,10 +11,12 @@ import yaml
 from aiohttp import web
 import socketio
 
+from pycrunch_tracer import oop
 from pycrunch_tracer.config import config
 from pycrunch_tracer.events.serialized_proto import EventBufferInProtobuf
 from pycrunch_tracer.file_system.session_store import SessionStore
 from pycrunch_tracer.file_system.trace_session import TraceSession
+from pycrunch_tracer.oop.file import File
 from pycrunch_tracer.serialization import to_string
 from pycrunch_tracer.session import active_clients
 from pycrunch_tracer.session.snapshot import snapshot
@@ -70,10 +72,12 @@ def run():
 
 
     async def new_recording(req, sid):
+        logger.info('Started saving new recording')
         event_buffer_bytes = req.get('buffer')
         # todo this is double loading
         x: TraceSession = pickle.loads(event_buffer_bytes)
         x.save()
+        logger.info('Recording saved successfully')
         await load_sessions(None)
         # await sio.emit('reply', event_buffer)
 
@@ -115,14 +119,25 @@ def run():
         pass
 
     async def load_single_session(req, sid):
+        logger.info('begin: load_single_session...')
         store = SessionStore()
         session_name = req.get('session_name')
         logging.info(f'Loading session {session_name}')
         ses = store.load_session(session_name)
+        ses.load_buffer()
+        recording_file = File(ses.buffer_file)
+        logger.info('sending reply...')
+        # await sio.emit('reply', to_string(buffer), room=sid)
+        try:
 
-        buffer = ses.load_buffer()
-        EventBufferInProtobuf(buffer).as_bytes()
-        await sio.emit('reply', EventBufferInProtobuf(buffer).as_bytes(), room=sid)
+            file_as_bytes = recording_file.as_bytes()
+            logger.info('bytes loaded...')
+            await sio.emit('reply', data=file_as_bytes, room=sid)
+            logger.info('Event sent')
+
+        except Exception as ex:
+            logger.exception('Failed to load session ' + session_name, exc_info=ex)
+
 
 
     async def load_file_event(req, sid):

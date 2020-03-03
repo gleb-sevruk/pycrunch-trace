@@ -20,6 +20,7 @@ class FileFilter:
         # r= Random()
         # if r.choice(range(0, 10)) == 1:
         #     return True
+        return True
         if filename.endswith(ending_exclusions):
             return False
         if filename.endswith(end_patterns):

@@ -7,7 +7,7 @@ import pycrunch_tracer.events.method_enter as events
 from pycrunch_tracer.file_system.trace_session import TraceSession
 from pycrunch_tracer.filters import FileFilter
 from pycrunch_tracer.simulation import EventKeys
-from pycrunch_tracer.tracing.simulator_sink import SimulatorSink
+from pycrunch_tracer.tracing.simulator_sink import SimulatorSink, DisabledSimulatorSink
 
 
 class CallStack:
@@ -35,12 +35,17 @@ class CallStack:
 
     def top_level_frame_as_clone(self):
         current: events.StackFrame = self.current_frame()
-        print('top_level_frame_as_clone ->' + str(current))
-        return events.StackFrame.clone(current)
+        # print('top_level_frame_as_clone ->' + str(current))
+        # return events.StackFrame.clone(current)
+        # ???
+        return current
 
     def current_frame(self):
         frame = self.get_parent_frame()
         return frame
+
+
+
 
 
 class SimpleTracer:
@@ -53,7 +58,7 @@ class SimpleTracer:
         self.file_filter = FileFilter()
         self.call_stack = CallStack()
         self.session = TraceSession(session_name)
-        self.simulation = SimulatorSink()
+        self.simulation = DisabledSimulatorSink()
         pass
 
     def simple_tracer(self, frame: models.Frame, event: str, arg):

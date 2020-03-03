@@ -37,20 +37,6 @@ class StackFrame:
         return self.id
 
 
-    def as_protobuf(self):
-        if not self.cached_protobuf_instance:
-            frame = message_pb2.StackFrame()
-            if self.file:
-                frame.file = self.file
-            if self.line:
-                frame.line = self.line
-            # print(frame.file)
-            if self.parent:
-                frame.parent.CopyFrom(self.parent.as_protobuf())
-
-            self.cached_protobuf_instance = frame
-        return self.cached_protobuf_instance
-
     @classmethod
     def new(cls, parent, execution_cursor: ExecutionCursor):
         return StackFrame(parent, execution_cursor.file, execution_cursor.line)
@@ -80,6 +66,7 @@ class Variables:
         self.variables[name] = self.ensure_safe_for_serialization(value)
 
     def ensure_safe_for_serialization(self, value):
+        # return 'a'
         if not can_trace_type(value):
             value = str(type(value))
         return value

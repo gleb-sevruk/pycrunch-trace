@@ -14,4 +14,4 @@ def my_factorial(num: int):
 my_factorial(10)
 
 x.stop()
-print(x._tracer.simulation.simulated_code())
+# print(x._tracer.simulation.simulated_code())

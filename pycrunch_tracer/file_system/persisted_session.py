@@ -7,7 +7,12 @@ from typing import List
 
 import jsonpickle
 
+from pycrunch_tracer.events.serialized_proto import EventBufferInProtobuf
 from pycrunch_tracer.file_system.human_readable_size import HumanReadableByteSize
+from pycrunch_tracer.proto import message_pb2
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class TraceSessionMetadata:
@@ -43,8 +48,11 @@ class LazyLoadedSession:
             # try:
                 # result = json.loads(buffer)
             # except:
-            result = pickle.loads(buffer)
 
+            # result = pickle.loads(buffer)
+
+            result = message_pb2.TraceSession()
+            result.ParseFromString(buffer)
             return result
 
     def load_metadata(self):
@@ -77,8 +85,11 @@ class PersistedSession:
         meta = TraceSessionMetadata()
         bytes_written = -42
         with io.FileIO(file_to_save, mode='w') as file:
-            result = self.serialize_to_bytes(event_buffer)
-            bytes_written = file.write(result)
+            try:
+                result = self.serialize_to_bytes(event_buffer)
+                bytes_written = file.write(result)
+            except Exception as ex:
+                logger.exception('failed to save session', exc_info=ex)
 
         meta.files_in_session = list(files_in_session)
         meta.excluded_files = list(excluded_files)
@@ -90,7 +101,9 @@ class PersistedSession:
         self.save_metadata(self.session_directory, meta)
 
     def serialize_to_bytes(self, event_buffer):
-        return pickle.dumps(event_buffer)
+        return EventBufferInProtobuf(event_buffer).as_bytes()
+        # todo add multiple serialization plugin/options
+        # return pickle.dumps(event_buffer)
 
     def save_metadata(self, session_directory: Path, meta: TraceSessionMetadata):
         metadata_file_path = session_directory.joinpath(self.metadata_filename)

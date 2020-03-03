@@ -40,6 +40,10 @@ def create_event_{index}():
 """
         return x
 
+class DisabledSimulatorSink(object):
+    def save_for_simulator(self, frame: models.Frame, event: str, arg):
+        pass
+
 class SimulatorSink:
     current_index: int
     simulation: List[str]
