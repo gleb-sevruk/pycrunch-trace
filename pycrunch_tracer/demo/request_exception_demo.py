@@ -17,7 +17,7 @@ def some_method():
 
 
 yoba = Yoba()
-yoba.start('request_exce')
+yoba.start('request_exce2',profile_name='default.profile.yaml')
 
 some_method()
 

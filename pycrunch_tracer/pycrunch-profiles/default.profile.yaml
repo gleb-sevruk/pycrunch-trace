@@ -1,0 +1,7 @@
+exclusions:
+- /Library/Frameworks/Python.framework/Versions/3.6/
+- Workbook.py
+- /Users/gleb/venv/pycrunch_tracing2/lib/python3.6/site-packages
+- /Users/gleb/venv/ba-admin/lib/python3.6/site-packages/
+- <
+profile_name: default.profile.yaml

@@ -1,7 +1,9 @@
 from random import Random
 
+from . import AbstractFileFilter
 
-class FileFilter:
+
+class DefaultFileFilter(AbstractFileFilter):
     def should_trace(self, filename: str) -> bool:
         start_patterns = (
             '/Users/gleb/code/pycrunch_tracing/',

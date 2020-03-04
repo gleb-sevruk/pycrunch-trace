@@ -1,7 +1,6 @@
 from pycrunch_tracer.api.tracing import Yoba
 
-x = Yoba()
-x.start('factorial')
+
 
 
 def my_factorial(num: int):
@@ -10,8 +9,10 @@ def my_factorial(num: int):
     else:
         return num * my_factorial(num - 1)
 
+yoba = Yoba()
+yoba.start(session_name='factorial')
 
 my_factorial(10)
 
-x.stop()
+yoba.stop()
 # print(x._tracer.simulation.simulated_code())

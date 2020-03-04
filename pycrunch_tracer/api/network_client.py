@@ -14,7 +14,7 @@ class TracingClient:
             version=version.version,
             product='pycrunch-tracing-node',
         )
-        self.sio.connect(url=host_url, headers=connection_headers)
+        self.sio.connect(url=host_url, headers=connection_headers, transports=['websocket'])
 
         @self.sio.event
         def message(data):
@@ -37,12 +37,20 @@ class TracingClient:
             print("CLIENT: I'm disconnected!")
 
     def push_message(self, entire_tracing_sesssion):
-        dumps = pickle.dumps(entire_tracing_sesssion)
-        print(f'dumped {len(dumps)} bytes')
-        self.sio.emit('event', dict(
-            action='new_recording',
-            buffer=dumps,
-        ))
+        # dumps = pickle.dumps(entire_tracing_sesssion)
+        # print(f'dumped {len(dumps)} bytes')
+        try:
+            print(f' ...sending bytes')
+
+            self.sio.emit('event', dict(
+                action='new_recording',
+                # buffer=dumps,
+            ))
+            print(f' ...sent')
+        except Exception as e:
+            print('  -- !fail to send')
+            print(str(e))
 
     def disconnect(self):
+
         self.sio.disconnect()

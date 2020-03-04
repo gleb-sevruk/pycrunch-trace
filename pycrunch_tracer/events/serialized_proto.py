@@ -38,7 +38,7 @@ class EventBufferInProtobuf:
             else:
                 frame.id = 0
 
-            print(aaaa)
+            # print(aaaa)
             session.stack_frames.append(frame)
 
         return session.SerializeToString()

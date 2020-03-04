@@ -11,11 +11,12 @@ import yaml
 from aiohttp import web
 import socketio
 
-from pycrunch_tracer import oop
 from pycrunch_tracer.config import config
 from pycrunch_tracer.events.serialized_proto import EventBufferInProtobuf
 from pycrunch_tracer.file_system.session_store import SessionStore
 from pycrunch_tracer.file_system.trace_session import TraceSession
+from pycrunch_tracer.filters import CustomFileFilter
+from pycrunch_tracer.oop import Directory, WriteableFile
 from pycrunch_tracer.oop.file import File
 from pycrunch_tracer.serialization import to_string
 from pycrunch_tracer.session import active_clients
@@ -38,6 +39,8 @@ with open(configuration_yaml_, 'r') as f:
 import logging
 
 logger = logging.getLogger(__name__)
+
+
 
 
 def run():
@@ -75,8 +78,10 @@ def run():
         logger.info('Started saving new recording')
         event_buffer_bytes = req.get('buffer')
         # todo this is double loading
-        x: TraceSession = pickle.loads(event_buffer_bytes)
-        x.save()
+        if (event_buffer_bytes) :
+            x: TraceSession = pickle.loads(event_buffer_bytes)
+            x.save()
+
         logger.info('Recording saved successfully')
         await load_sessions(None)
         # await sio.emit('reply', event_buffer)
@@ -92,10 +97,16 @@ def run():
             await load_buffer_event(action, sid)
         elif action == 'load_file':
             await load_file_event(req, sid)
+        elif action == 'load_profiles':
+            await load_profiles_event(req, sid)
         elif action == 'load_sessions':
             await load_sessions(sid)
+        elif action == 'load_profile_details':
+            await load_profile_details(req, sid)
         elif action == 'load_single_session':
             await load_single_session(req, sid)
+        elif action == 'save_profile_details':
+            await save_profile_details(req, sid)
         elif action == 'new_recording':
             print('new_recording')
             await new_recording(req, sid)
@@ -138,7 +149,15 @@ def run():
         except Exception as ex:
             logger.exception('Failed to load session ' + session_name, exc_info=ex)
 
+    async def save_profile_details(req, sid):
+        logger.debug(f'save_profile_details: `{req}`')
+        profile = req.get('profile')
+        profile_name = profile.get('profile_name')
+        xxx = yaml.dump(profile)
+        logger.debug(xxx)
+        profiles__joinpath = package_directory.joinpath('pycrunch-profiles').joinpath(profile_name)
 
+        WriteableFile(profiles__joinpath, xxx.encode('utf-8')).save()
 
     async def load_file_event(req, sid):
         file_to_load = req.get('file_to_load')
@@ -148,6 +167,28 @@ def run():
             await sio.emit('file_did_load', dict(filename=file_to_load, contents=lines), room=sid)
 
 
+    async def load_profile_details(req, sid):
+        d = Directory(package_directory.joinpath('pycrunch-profiles'))
+        profile_name = req.get('profile_name')
+        joinpath = package_directory.joinpath('pycrunch-profiles').joinpath(profile_name)
+        print(joinpath)
+        fff = CustomFileFilter(File(joinpath))
+
+        raw = fff.all_exclusions()
+
+        await sio.emit('profile_details_loaded', dict(exclusions=raw,
+            profile_name=profile_name), room=sid)
+
+    async def load_profiles_event(req, sid):
+        d = Directory(package_directory.joinpath('pycrunch-profiles'))
+        res = d.files('yaml')
+        print(res)
+        raw = []
+        for f in res:
+            raw.append(f.short_name())
+        await sio.emit('profiles_loaded', dict(profiles=raw), room=sid)
+
+        pass
     async def load_buffer_event(action, sid):
         # return
         print('reply ', action)
