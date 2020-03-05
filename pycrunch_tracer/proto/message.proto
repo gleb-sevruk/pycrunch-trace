@@ -1,7 +1,4 @@
 syntax = "proto3";
-
-import "google/protobuf/any.proto";
-
 message TraceSession {
     repeated TraceEvent events = 1;
     repeated StackFrame stack_frames = 2;
@@ -14,7 +11,6 @@ message TraceEvent {
     Variables input_variables = 4;
     Variables locals = 5;
     Variables return_variables = 6;
-
 }
 message Variables {
     repeated Variable variables = 1;
@@ -28,7 +24,6 @@ message ExecutionCursor {
   string file = 1;
   int32 line = 2;
 }
-
 message StackFrame {
   int32 id = 1;
   string file = 2;

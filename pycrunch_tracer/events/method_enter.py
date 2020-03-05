@@ -47,13 +47,14 @@ class StackFrame:
             return StackFrame.empty()
         return StackFrame(origin.parent, origin.file, origin.line)
 
+    @classmethod
+    def empty(cls):
+        return StackFrame(None, None, None)
 
     def __str__(self):
         return f'{self.file}:{self.line} -> \n\t {self.parent}'
 
-    @classmethod
-    def empty(cls):
-        return StackFrame(None, None, None)
+
 
 
 class Variables:

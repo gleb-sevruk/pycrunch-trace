@@ -1,5 +1,5 @@
 import pycrunch_tracer.events.method_enter as e
-from pycrunch_tracer import config
+from pycrunch_tracer.config import config
 from pycrunch_tracer.serialization import to_string
 
 

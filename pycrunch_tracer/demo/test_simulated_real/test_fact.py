@@ -3,6 +3,7 @@ from pycrunch.insights import trace
 
 from pycrunch_tracer.events import serialized_proto
 from pycrunch_tracer.file_system.session_store import SessionStore
+from pycrunch_tracer.filters import DefaultFileFilter
 from pycrunch_tracer.proto import message_pb2
 from pycrunch_tracer.serialization import to_string
 from pycrunch_tracer.simulation import models
@@ -694,7 +695,7 @@ def test_simulated():
     events.append(create_event_40())
 
     event_buffer = []
-    sut = SimpleTracer(event_buffer, 'sim_round')
+    sut = SimpleTracer(event_buffer, 'sim_round', DefaultFileFilter())
     for x in events:
         sut.simple_tracer(x.frame, x.event, x.arg)
 

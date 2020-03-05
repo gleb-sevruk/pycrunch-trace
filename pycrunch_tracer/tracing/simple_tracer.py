@@ -61,6 +61,7 @@ class SimpleTracer:
         self.call_stack = CallStack()
         self.session = TraceSession(session_name)
         self.simulation = DisabledSimulatorSink()
+        # self.simulation = SimulatorSink()
         pass
 
     def simple_tracer(self, frame: models.Frame, event: str, arg):
@@ -73,9 +74,10 @@ class SimpleTracer:
         if not self.file_filter.should_trace(file_path_under_cursor):
             self.session.will_skip_file(file_path_under_cursor)
             # Ignore calls not in this module
-            return
-
-        self.session.did_enter_traceable_file(file_path_under_cursor)
+            # self.session.did_enter_traceable_file(file_path_under_cursor)
+            # return self.simple_tracer
+        else:
+            self.session.did_enter_traceable_file(file_path_under_cursor)
 
         self.process_events(event, frame, arg)
         self.simulation.save_for_simulator(frame, event, arg)
@@ -85,26 +87,40 @@ class SimpleTracer:
         return self.simple_tracer
 
     def process_events(self, event: str, frame: models.Frame, arg):
+        will_record_current_event = False
+        file_path_under_cursor = frame.f_code.co_filename
         cursor = events.ExecutionCursor(frame.f_code.co_filename, frame.f_lineno)
+        if not self.file_filter.should_trace(file_path_under_cursor):
+            self.session.will_skip_file(file_path_under_cursor)
+            # Ignore calls not in this module
+            # self.session.did_enter_traceable_file(file_path_under_cursor)
+            # return self.simple_tracer
+        else:
+            will_record_current_event = True
+            self.session.did_enter_traceable_file(file_path_under_cursor)
+
         if event == EventKeys.call:
             self.call_stack.enter_frame(cursor)
-            current = events.MethodEnterEvent(cursor, self.get_execution_stack())
-            variables = current.input_variables
-            self.push_traceable_variables(frame, variables)
-            self.event_buffer.append(current)
+            if will_record_current_event:
+                current = events.MethodEnterEvent(cursor, self.get_execution_stack())
+                variables = current.input_variables
+                self.push_traceable_variables(frame, variables)
+                self.event_buffer.append(current)
 
         if event == EventKeys.line:
             self.call_stack.new_cursor_in_current_frame(cursor)
-            current = events.LineExecutionEvent(cursor, self.get_execution_stack())
-            self.push_traceable_variables(frame, current.locals)
-            self.event_buffer.append(current)
+            if will_record_current_event:
+                current = events.LineExecutionEvent(cursor, self.get_execution_stack())
+                self.push_traceable_variables(frame, current.locals)
+                self.event_buffer.append(current)
 
         if event == EventKeys.event_return:
             self.call_stack.exit_frame()
-            current = events.MethodExitEvent(cursor, self.get_execution_stack())
-            current.return_variables.push_variable('__return', arg)
-            self.push_traceable_variables(frame, current.locals)
-            self.event_buffer.append(current)
+            if will_record_current_event:
+                current = events.MethodExitEvent(cursor, self.get_execution_stack())
+                current.return_variables.push_variable('__return', arg)
+                self.push_traceable_variables(frame, current.locals)
+                self.event_buffer.append(current)
 
     def get_execution_stack(self):
         return self.call_stack.top_level_frame_as_clone()

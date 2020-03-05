@@ -3,6 +3,7 @@ from typing import List, Any
 
 import yaml
 
+from ..filters import CustomFileFilter
 from ..oop import Directory, AbstractFile
 from ..oop import File
 

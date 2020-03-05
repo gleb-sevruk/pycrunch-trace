@@ -23,3 +23,5 @@ run(xxx)
 
 
 yoba.stop()
+
+print('stoped')

@@ -4,4 +4,5 @@ exclusions:
 - /Users/gleb/venv/pycrunch_tracing2/lib/python3.6/site-packages
 - /Users/gleb/venv/ba-admin/lib/python3.6/site-packages/
 - <
+- /Users/gleb/venv/PyCrunch/lib/python3.6/site-packages/
 profile_name: default.profile.yaml

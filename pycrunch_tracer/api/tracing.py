@@ -35,13 +35,13 @@ class Yoba:
         self.warn_if_another_tracing_set()
 
         # self._client = network_client.TracingClient(self.host)
-        if profile_name:
+        if not profile_name:
+            profile_name = 'default.profile.yaml'
 
-            package_directory = Path(__file__).parent.parent
-            f_filter = CustomFileFilter(File(package_directory.joinpath('pycrunch-profiles', profile_name)))
-            print(f_filter.all_exclusions())
-        else:
-            f_filter = DefaultFileFilter()
+        package_directory = Path(__file__).parent.parent
+        f_filter = CustomFileFilter(File(package_directory.joinpath('pycrunch-profiles', profile_name)))
+        # else:
+        #     f_filter = DefaultFileFilter()
         self._tracer = SimpleTracer(self.command_buffer, self.session_name, f_filter)
         sys.settrace(self._tracer.simple_tracer)
 

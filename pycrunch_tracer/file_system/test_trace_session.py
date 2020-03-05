@@ -19,12 +19,13 @@ def test_load_sessions():
     print(x.all_sessions())
 
 def test_multiple_files():
-    x = TraceSession()
+    x = TraceSession('aaa')
     x.did_enter_traceable_file('a')
     x.did_enter_traceable_file('a2')
     x.did_enter_traceable_file('b')
-
+    print('aaa')
     x.will_skip_file('c')
     x.will_skip_file('c')
     x.will_skip_file('d')
-    x.save('a', build_testing_events())
+    x.buffer_became_available(build_testing_events())
+    x.save()

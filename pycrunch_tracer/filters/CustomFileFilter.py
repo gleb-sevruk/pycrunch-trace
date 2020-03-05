@@ -21,6 +21,7 @@ class CustomFileFilter(AbstractFileFilter):
     def should_trace(self, filename: str):
         self._ensure_loaded()
         if filename.startswith(self.exclusions) or filename.endswith(self.exclusions):
+            # print('should_trace: false - filename= '+filename)
             return False
         return True
 
@@ -29,8 +30,7 @@ class CustomFileFilter(AbstractFileFilter):
             return
 
         self._load()
-
-        pass
+        self._loaded = True
 
     def _load(self):
         all = yaml.load(self.profile_file.as_bytes(), Loader=yaml.FullLoader)
