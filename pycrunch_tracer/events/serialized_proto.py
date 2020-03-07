@@ -25,11 +25,13 @@ class EventBufferInProtobuf:
                 if not e.stack.line:
                     frame.line = -1
                     frame.file = ''
+                    frame.function_name = '??'
                     print('suka')
                     print(e.stack)
                 else:
                     frame.line = e.stack.line
                     frame.file = e.stack.file
+                    frame.function_name = e.stack.function_name
 
                 if e.stack and e.stack.parent:
                     frame.parent_id = e.stack.parent.id
@@ -69,6 +71,7 @@ class EventBufferInProtobuf:
 
         evt.cursor.file = e.cursor.file
         evt.cursor.line = e.cursor.line
+        evt.cursor.function_name = e.cursor.function_name
         # ptask.task.MergeFrom(task)
         if e.stack:
             evt.stack_id = e.stack.id

@@ -11,7 +11,6 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
-from google.protobuf import any_pb2 as google_dot_protobuf_dot_any__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
@@ -19,9 +18,8 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=b'\n\rmessage.proto\x1a\x19google/protobuf/any.proto\"N\n\x0cTraceSession\x12\x1b\n\x06\x65vents\x18\x01 \x03(\x0b\x32\x0b.TraceEvent\x12!\n\x0cstack_frames\x18\x02 \x03(\x0b\x32\x0b.StackFrame\"\xbb\x01\n\nTraceEvent\x12\x12\n\nevent_name\x18\x01 \x01(\t\x12 \n\x06\x63ursor\x18\x02 \x01(\x0b\x32\x10.ExecutionCursor\x12\x10\n\x08stack_id\x18\x03 \x01(\x05\x12#\n\x0finput_variables\x18\x04 \x01(\x0b\x32\n.Variables\x12\x1a\n\x06locals\x18\x05 \x01(\x0b\x32\n.Variables\x12$\n\x10return_variables\x18\x06 \x01(\x0b\x32\n.Variables\")\n\tVariables\x12\x1c\n\tvariables\x18\x01 \x03(\x0b\x32\t.Variable\"\'\n\x08Variable\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"-\n\x0f\x45xecutionCursor\x12\x0c\n\x04\x66ile\x18\x01 \x01(\t\x12\x0c\n\x04line\x18\x02 \x01(\x05\"G\n\nStackFrame\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0c\n\x04\x66ile\x18\x02 \x01(\t\x12\x0c\n\x04line\x18\x03 \x01(\x05\x12\x11\n\tparent_id\x18\x04 \x01(\x05\x62\x06proto3'
-  ,
-  dependencies=[google_dot_protobuf_dot_any__pb2.DESCRIPTOR,])
+  serialized_pb=b'\n\rmessage.proto\"N\n\x0cTraceSession\x12\x1b\n\x06\x65vents\x18\x01 \x03(\x0b\x32\x0b.TraceEvent\x12!\n\x0cstack_frames\x18\x02 \x03(\x0b\x32\x0b.StackFrame\"\xbb\x01\n\nTraceEvent\x12\x12\n\nevent_name\x18\x01 \x01(\t\x12 \n\x06\x63ursor\x18\x02 \x01(\x0b\x32\x10.ExecutionCursor\x12\x10\n\x08stack_id\x18\x03 \x01(\x05\x12#\n\x0finput_variables\x18\x04 \x01(\x0b\x32\n.Variables\x12\x1a\n\x06locals\x18\x05 \x01(\x0b\x32\n.Variables\x12$\n\x10return_variables\x18\x06 \x01(\x0b\x32\n.Variables\")\n\tVariables\x12\x1c\n\tvariables\x18\x01 \x03(\x0b\x32\t.Variable\"\'\n\x08Variable\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\"D\n\x0f\x45xecutionCursor\x12\x0c\n\x04\x66ile\x18\x01 \x01(\t\x12\x0c\n\x04line\x18\x02 \x01(\x05\x12\x15\n\rfunction_name\x18\x03 \x01(\t\"^\n\nStackFrame\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0c\n\x04\x66ile\x18\x02 \x01(\t\x12\x0c\n\x04line\x18\x03 \x01(\x05\x12\x11\n\tparent_id\x18\x04 \x01(\x05\x12\x15\n\rfunction_name\x18\x05 \x01(\tb\x06proto3'
+)
 
 
 
@@ -59,8 +57,8 @@ _TRACESESSION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=44,
-  serialized_end=122,
+  serialized_start=17,
+  serialized_end=95,
 )
 
 
@@ -125,8 +123,8 @@ _TRACEEVENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=125,
-  serialized_end=312,
+  serialized_start=98,
+  serialized_end=285,
 )
 
 
@@ -156,8 +154,8 @@ _VARIABLES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=314,
-  serialized_end=355,
+  serialized_start=287,
+  serialized_end=328,
 )
 
 
@@ -194,8 +192,8 @@ _VARIABLE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=357,
-  serialized_end=396,
+  serialized_start=330,
+  serialized_end=369,
 )
 
 
@@ -220,6 +218,13 @@ _EXECUTIONCURSOR = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='function_name', full_name='ExecutionCursor.function_name', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -232,8 +237,8 @@ _EXECUTIONCURSOR = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=398,
-  serialized_end=443,
+  serialized_start=371,
+  serialized_end=439,
 )
 
 
@@ -272,6 +277,13 @@ _STACKFRAME = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='function_name', full_name='StackFrame.function_name', index=4,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -284,8 +296,8 @@ _STACKFRAME = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=445,
-  serialized_end=516,
+  serialized_start=441,
+  serialized_end=535,
 )
 
 _TRACESESSION.fields_by_name['events'].message_type = _TRACEEVENT

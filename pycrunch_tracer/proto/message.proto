@@ -23,10 +23,14 @@ message Variable {
 message ExecutionCursor {
   string file = 1;
   int32 line = 2;
+  string function_name = 3;
+
 }
 message StackFrame {
   int32 id = 1;
   string file = 2;
   int32 line = 3;
     int32 parent_id = 4;
+  string function_name = 5;
+
 }

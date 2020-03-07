@@ -75,6 +75,8 @@ class SimpleTracer:
             self.session.will_skip_file(file_path_under_cursor)
             # Ignore calls not in this module
             # self.session.did_enter_traceable_file(file_path_under_cursor)
+            # todo this should return immidiately ?
+            #
             # return self.simple_tracer
         else:
             self.session.did_enter_traceable_file(file_path_under_cursor)
@@ -89,7 +91,7 @@ class SimpleTracer:
     def process_events(self, event: str, frame: models.Frame, arg):
         will_record_current_event = False
         file_path_under_cursor = frame.f_code.co_filename
-        cursor = events.ExecutionCursor(frame.f_code.co_filename, frame.f_lineno)
+        cursor = events.ExecutionCursor(frame.f_code.co_filename, frame.f_lineno, frame.f_code.co_name)
         if not self.file_filter.should_trace(file_path_under_cursor):
             self.session.will_skip_file(file_path_under_cursor)
             # Ignore calls not in this module

@@ -2,19 +2,20 @@ from typing import TypeVar
 
 from .base_event import Event
 from ..filters import can_trace_type
-from ..proto import message_pb2
 
 
 class ExecutionCursor:
+    function_name: str
     file: str
     line: int
 
-    def __init__(self, file: str, line: int):
+    def __init__(self, file: str, line: int, function_name: str):
+        self.function_name = function_name
         self.file = file
         self.line = line
 
 class StackFrameIds:
-    last_id : int
+    last_id: int
     def __init__(self):
         self.last_id = 1
 
@@ -27,11 +28,12 @@ stack_ids = StackFrameIds()
 
 class StackFrame:
     # parent: StackFrame
-    def __init__(self, parent, file: str, line: int):
+    def __init__(self, parent, file: str, line: int, function_name: str):
         self.parent = parent
         self.file = file
         self.line = line
         self.id = stack_ids.new_id()
+        self.function_name = function_name
 
     def as_id(self):
         return self.id
@@ -39,20 +41,20 @@ class StackFrame:
 
     @classmethod
     def new(cls, parent, execution_cursor: ExecutionCursor):
-        return StackFrame(parent, execution_cursor.file, execution_cursor.line)
+        return StackFrame(parent, execution_cursor.file, execution_cursor.line, execution_cursor.function_name)
 
     @classmethod
     def clone(cls, origin):
         if not origin:
             return StackFrame.empty()
-        return StackFrame(origin.parent, origin.file, origin.line)
+        return StackFrame(origin.parent, origin.file, origin.line, origin.function_name)
 
     @classmethod
     def empty(cls):
-        return StackFrame(None, None, None)
+        return StackFrame(None, None, None, None)
 
     def __str__(self):
-        return f'{self.file}:{self.line} -> \n\t {self.parent}'
+        return f'{self.file}:{self.function_name}:{self.line} -> \n\t {self.parent}'
 
 
 
