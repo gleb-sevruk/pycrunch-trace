@@ -33,7 +33,12 @@ class CallStack:
         stack_frame.function_name = new_cursor.function_name
         # todo this is probably dirty hack?
         # or just replacing last-known stack frame
-        self.stack[-1] = stack_frame
+        if len(self.stack) > 0:
+            self.stack[-1] = stack_frame
+        else:
+            # session just begin, not yet in any stack
+            self.stack.append(stack_frame)
+
 
     def exit_frame(self):
         self.stack.pop()

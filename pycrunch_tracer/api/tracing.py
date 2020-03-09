@@ -46,6 +46,9 @@ class Yoba:
         #     f_filter = DefaultFileFilter()
         self.clock = Clock()
         self._tracer = SimpleTracer(self.command_buffer, self.session_name, f_filter, self.clock)
+        # also trace parent function
+        sys._getframe().f_back.f_trace = self._tracer.simple_tracer
+
         sys.settrace(self._tracer.simple_tracer)
 
         self.is_tracing = True
