@@ -7,12 +7,13 @@ from time import sleep
 from pycrunch_tracer.file_system.session_store import SessionStore
 from pycrunch_tracer.filters import CustomFileFilter
 from pycrunch_tracer.filters import DefaultFileFilter
-from pycrunch_tracer.oop import File
+from pycrunch_tracer.oop import File, Clock
 from pycrunch_tracer.session.snapshot import snapshot
 from pycrunch_tracer.tracing.simple_tracer import SimpleTracer
 
 
 class Yoba:
+    clock: Clock
     _tracer: SimpleTracer
 
     def __init__(self):
@@ -22,6 +23,7 @@ class Yoba:
         self.session_name = None
         self._tracer = None
         # self._client: network_client.TracingClient = None
+        self.clock = None
         self.host = None
 
     def generate_session_name(self) -> str:
@@ -42,7 +44,8 @@ class Yoba:
         f_filter = CustomFileFilter(File(package_directory.joinpath('pycrunch-profiles', profile_name)))
         # else:
         #     f_filter = DefaultFileFilter()
-        self._tracer = SimpleTracer(self.command_buffer, self.session_name, f_filter)
+        self.clock = Clock()
+        self._tracer = SimpleTracer(self.command_buffer, self.session_name, f_filter, self.clock)
         sys.settrace(self._tracer.simple_tracer)
 
         self.is_tracing = True
@@ -75,5 +78,4 @@ class Yoba:
         # snapshot.save('a', self.command_buffer)
         self._tracer.session.save()
         # self._client.push_message(self._tracer.session)
-        print('tracing --- results saved to file')
         # self._client.disconnect()

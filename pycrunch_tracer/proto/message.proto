@@ -11,6 +11,9 @@ message TraceEvent {
     Variables input_variables = 4;
     Variables locals = 5;
     Variables return_variables = 6;
+//    timestamp of the event
+//    todo will I lose precision on long events?
+    float ts = 7;
 }
 message Variables {
     repeated Variable variables = 1;

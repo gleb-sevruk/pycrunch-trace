@@ -1,5 +1,6 @@
 from typing import Union
 
+from pycrunch_tracer.events.base_event import Event
 from pycrunch_tracer.proto import message_pb2
 
 
@@ -9,10 +10,7 @@ class EventBufferInProtobuf:
 
     def as_bytes(self):
         session = message_pb2.TraceSession()
-        aaaa = 0
         for e in self.event_buffer:
-            # print('aaaa = ' + str(aaaa))
-            aaaa +=1
             evt = self.pb_event_from_py(e)
 
             session.events.append(evt)
@@ -45,9 +43,10 @@ class EventBufferInProtobuf:
 
         return session.SerializeToString()
 
-    def pb_event_from_py(self, e):
+    def pb_event_from_py(self, e: Event):
         evt = message_pb2.TraceEvent()
         evt.event_name = e.event_name
+        evt.ts = e.ts
         if e.event_name == 'line' or e.event_name == 'method_exit':
             for key, value in e.locals.variables.items():
                 pb_var = message_pb2.Variable()

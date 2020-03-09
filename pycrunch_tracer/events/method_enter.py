@@ -80,11 +80,12 @@ class MethodEnterEvent(Event):
     input_variables: Variables
     stack: StackFrame
 
-    def __init__(self, cursor: ExecutionCursor, stack: StackFrame):
+    def __init__(self, cursor: ExecutionCursor, stack: StackFrame, ts: float):
         self.cursor = cursor
         self.input_variables = Variables()
         self.stack = stack
         self.event_name = 'method_enter'
+        self.ts = ts
 
 
 class LineExecutionEvent(Event):
@@ -92,11 +93,12 @@ class LineExecutionEvent(Event):
     locals: Variables
     stack: StackFrame
 
-    def __init__(self, cursor, stack: StackFrame):
+    def __init__(self, cursor, stack: StackFrame, ts: float):
         self.cursor = cursor
         self.locals = Variables()
         self.event_name = 'line'
         self.stack = stack
+        self.ts = ts
 
 
 
@@ -108,10 +110,11 @@ class MethodExitEvent(Event):
     locals: Variables
     stack: StackFrame
 
-    def __init__(self, cursor: ExecutionCursor, stack: StackFrame):
+    def __init__(self, cursor: ExecutionCursor, stack: StackFrame, ts: float):
         self.cursor = cursor
         self.return_variables = Variables()
         self.locals = Variables()
         self.event_name = 'method_exit'
         self.stack = stack
+        self.ts = ts
 

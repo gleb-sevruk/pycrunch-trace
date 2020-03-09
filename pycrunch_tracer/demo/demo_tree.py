@@ -35,5 +35,8 @@ y.start('demo_tree')
 a___()
 
 y.stop()
+# print(y._tracer.simulation.simulated_code())
+# import pydevd_pycharm
+# pydevd_pycharm.settrace('localhost', port=44441, stdoutToServer=True, stderrToServer=True)
 for (x, cmd) in enumerate(y.command_buffer):
     print(str(x+1) + ' - line:' + str(cmd.cursor.line) + ':' + str(cmd))

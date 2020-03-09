@@ -97,6 +97,7 @@ class PersistedSession:
         meta.file_size_on_disk = str(HumanReadableByteSize(bytes_written))
         meta.events_in_session = len(event_buffer)
         meta.name = str(self.session_directory)
+        print(f'tracing --- protobuf binary array results saved to file {file_to_save}')
 
         self.save_metadata(self.session_directory, meta)
 
