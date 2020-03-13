@@ -1,12 +1,11 @@
 import jsonpickle
 from pycrunch.insights import trace
 
-from pycrunch_tracer.events import serialized_proto
-from pycrunch_tracer.file_system.session_store import SessionStore
+from pycrunch_tracer.events import event_buffer_in_protobuf
 from pycrunch_tracer.filters import DefaultFileFilter
 from pycrunch_tracer.proto import message_pb2
 from pycrunch_tracer.serialization import to_string
-from pycrunch_tracer.simulation import models
+from pycrunch_tracer.tracing.simulation import models
 from pycrunch_tracer.tracing.simple_tracer import SimpleTracer
 from pycrunch_tracer.tracing.simulator_sink import SimulationEvent
 
@@ -695,7 +694,7 @@ def test_simulated():
     events.append(create_event_40())
 
     event_buffer = []
-    sut = SimpleTracer(event_buffer, 'sim_round', DefaultFileFilter())
+    sut = SimpleTracer(event_buffer, 'sim_round', DefaultFileFilter(),, self.outgoingQueue
     for x in events:
         sut.simple_tracer(x.frame, x.event, x.arg)
 
@@ -708,7 +707,7 @@ def test_simulated():
     # ses = ss.new_session('round_demo')
     # ses.save_with_metadata()
 
-    bytesAsString = serialized_proto.EventBufferInProtobuf(event_buffer).as_bytes()
+    bytesAsString = event_buffer_in_protobuf.EventBufferInProtobuf(event_buffer).as_bytes()
     trace(vbbbb=str(bytesAsString))
     print(len(bytesAsString))
     session_round = message_pb2.TraceSession()

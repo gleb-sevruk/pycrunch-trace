@@ -1,8 +1,6 @@
-import inspect
-
 from pycrunch.insights import trace
 
-import pycrunch_tracer.simulation.models as sim
+import pycrunch_tracer.tracing.simulation.models as sim
 from pycrunch_tracer.serialization import to_string
 from pycrunch_tracer.session.snapshot import snapshot
 from pycrunch_tracer.tracing.simple_tracer import SimpleTracer
@@ -27,7 +25,7 @@ def test_sim1():
         frame.f_locals = dict(some_number=1)
         return frame
     event_buffer = []
-    sut = SimpleTracer(event_buffer, 'testing')
+    sut = SimpleTracer(event_buffer, 'testing',,
     sut.simple_tracer(get_frame(2), sim.EventKeys.call, None)
     sut.simple_tracer(get_frame(3), sim.EventKeys.line, None)
     sut.simple_tracer(get_frame(4), sim.EventKeys.line, None)

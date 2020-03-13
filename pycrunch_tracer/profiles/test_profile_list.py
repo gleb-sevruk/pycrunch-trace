@@ -24,8 +24,6 @@ def test_profiles():
 
 
 def test_profile_should_have_excluded():
-    directory = profiles_dir()
-    all = directory.files('yaml')
     buffer = b"""
 exclusions:
   - no_trace.py
@@ -37,6 +35,15 @@ exclusions:
     assert not sut.should_trace('/Library/a.py')
     assert sut.should_trace('b.py')
     assert sut.should_trace('/code/b.py')
+
+
+def test_profile_trace_vars_false():
+    buffer = b"""
+trace_variables: false
+    """
+    sut = CustomFileFilter(File.Mock(buffer))
+
+    assert not sut.should_record_variables()
 
 
 def profiles_dir():

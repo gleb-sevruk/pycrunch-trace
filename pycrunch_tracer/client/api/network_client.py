@@ -1,9 +1,6 @@
-import pickle
-
 import socketio
 
 from . import version
-from ..serialization.shared import to_string
 
 
 class TracingClient:

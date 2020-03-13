@@ -1,0 +1,1 @@
+from .ClientOutgoingQueueThread import event_queue

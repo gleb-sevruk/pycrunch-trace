@@ -1,15 +1,15 @@
 import sys
 import uuid
 from pathlib import Path
-from time import sleep
 
 # from pycrunch_tracer.api import network_client
-from pycrunch_tracer.file_system.session_store import SessionStore
+from pycrunch_tracer.client.networking import event_queue
+from pycrunch_tracer.client.networking.commands import EventsSlice
+from pycrunch_tracer.config import config
 from pycrunch_tracer.filters import CustomFileFilter
-from pycrunch_tracer.filters import DefaultFileFilter
-from pycrunch_tracer.oop import File, Clock
-from pycrunch_tracer.session.snapshot import snapshot
+from pycrunch_tracer.oop import File, Clock, SafeFilename
 from pycrunch_tracer.tracing.simple_tracer import SimpleTracer
+
 
 
 class Yoba:
@@ -25,11 +25,13 @@ class Yoba:
         # self._client: network_client.TracingClient = None
         self.clock = None
         self.host = None
+        self.outgoingQueue = None
 
     def generate_session_name(self) -> str:
         return str(uuid.uuid4())
 
     def start(self, session_name: str = None, host: str = None, profile_name: str = None):
+
         if self.is_tracing:
             raise Exception('PyCrunch tracer ERROR: tracing already started')
 
@@ -39,13 +41,19 @@ class Yoba:
         # self._client = network_client.TracingClient(self.host)
         if not profile_name:
             profile_name = 'default.profile.yaml'
-
-        package_directory = Path(__file__).parent.parent
+        package_directory = Path(__file__).parent.parent.parent
         f_filter = CustomFileFilter(File(package_directory.joinpath('pycrunch-profiles', profile_name)))
         # else:
         #     f_filter = DefaultFileFilter()
+
+        self.start_queue()
+
         self.clock = Clock()
-        self._tracer = SimpleTracer(self.command_buffer, self.session_name, f_filter, self.clock)
+        self._tracer = SimpleTracer(self.command_buffer, self.session_name, f_filter, self.clock, self.outgoingQueue)
+        self.outgoingQueue.start()
+
+        self.outgoingQueue.tracing_will_start(self.session_name)
+
         # also trace parent function
         sys._getframe().f_back.f_trace = self._tracer.simple_tracer
 
@@ -53,18 +61,22 @@ class Yoba:
 
         self.is_tracing = True
 
+    def start_queue(self):
+        self.outgoingQueue = event_queue
+        self.outgoingQueue.start()
+
     def warn_if_another_tracing_set(self):
         if sys.gettrace():
             # there is already trace
             print('PyCrunch tracer WARNING:')
             print('  -- there is already trace function set. ')
-            print('  -- continuing will result in errors ')
+            print('  -- continuing might result in errors ')
 
     def prepare_state(self, host, session_name):
         if not session_name:
             self.session_name = self.generate_session_name()
         else:
-            self.session_name = session_name
+            self.session_name = SafeFilename(session_name).__str__()
         if host:
             self.host = host
         else:
@@ -79,6 +91,16 @@ class Yoba:
         self.is_tracing = False
         self._tracer.session.buffer_became_available(self.command_buffer)
         # snapshot.save('a', self.command_buffer)
-        self._tracer.session.save()
+        local = False
+        # local = True
+        if local:
+            self._tracer.session.save()
+
+        self._tracer.flush_outstanding_events()
+
+        self.outgoingQueue.tracing_did_complete(self.session_name)
+            # self._tracer.session.save()
+
+
         # self._client.push_message(self._tracer.session)
         # self._client.disconnect()

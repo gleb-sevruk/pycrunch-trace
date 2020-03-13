@@ -1,8 +1,13 @@
 exclusions:
-- /Library/Frameworks/Python.framework/Versions/3.6/
+#- /Library/Frameworks/Python.framework/Versions/3.6/
 - Workbook.py
-- /Users/gleb/venv/pycrunch_tracing2/lib/python3.6/site-packages
-- /Users/gleb/venv/ba-admin/lib/python3.6/site-packages/
+#- /Users/gleb/venv/ba-admin/lib/python3.6/site-packages/setuptools-39.1.0
+#- /Users/gleb/venv/ba-admin/lib/python3.6/site-packages/django
 - <
 - /Users/gleb/venv/PyCrunch/lib/python3.6/site-packages/
+- /Users/gleb/venv/pycrunch_tracing2/lib/python3.6/site-packages/pluggy
+- <todo_get_canonical_file from google
+- /Users/gleb/venv/pycrunch_tracing2/lib/python3.6/site-packages/_pytest
+- /Users/gleb/venv/pycrunch_tracing2/lib/python3.6/site-packages/attr
 profile_name: default.profile.yaml
+trace_variables: true

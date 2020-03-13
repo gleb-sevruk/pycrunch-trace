@@ -1,6 +1,6 @@
 from time import sleep
 
-from pycrunch_tracer.api import yoba
+from pycrunch_tracer.client.api import yoba
 
 
 @yoba('timings_precision')

@@ -1,13 +1,13 @@
 import collections
-from importlib._bootstrap import _call_with_frames_removed
 from typing import List
 
-import pycrunch_tracer.simulation.models as models
+import pycrunch_tracer.tracing.simulation.models as models
 import pycrunch_tracer.events.method_enter as events
+from pycrunch_tracer.client.networking.commands import EventsSlice
 from pycrunch_tracer.file_system.trace_session import TraceSession
 from pycrunch_tracer.filters import AbstractFileFilter
 from pycrunch_tracer.oop import Clock
-from pycrunch_tracer.simulation import EventKeys
+from pycrunch_tracer.tracing.simulation import EventKeys
 from pycrunch_tracer.tracing.simulator_sink import SimulatorSink, DisabledSimulatorSink
 
 
@@ -54,18 +54,16 @@ class CallStack:
         frame = self.get_parent_frame()
         return frame
 
-
-
-
-
 class SimpleTracer:
+    event_number: int
     file_filter: AbstractFileFilter
     event_buffer: List
     call_stack: CallStack
     session: TraceSession
     simulation: SimulatorSink
     
-    def __init__(self, event_buffer, session_name, file_filter: AbstractFileFilter, clock: Clock):
+    def __init__(self, event_buffer, session_name, file_filter: AbstractFileFilter, clock: Clock, queue):
+        self.event_number = 1
         self.clock = clock
         self.event_buffer = event_buffer
         self.file_filter = file_filter
@@ -74,13 +72,16 @@ class SimpleTracer:
         self.simulation = DisabledSimulatorSink()
         # self.simulation = SimulatorSink()
 
+        self.queue = queue
+        self.max_events_before_send = 5000
+
     def simple_tracer(self, frame: models.Frame, event: str, arg):
-        f_type = type(frame)
+        # f_type = type(frame)
         # print(f_type.__module__ + '.' + f_type.__qualname__)
         co = frame.f_code
-        func_name = co.co_name
+        # func_name = co.co_name
         file_path_under_cursor = co.co_filename
-        line_no = frame.f_lineno
+        # line_no = frame.f_lineno
         if not self.file_filter.should_trace(file_path_under_cursor):
             self.session.will_skip_file(file_path_under_cursor)
             # Ignore calls not in this module
@@ -114,14 +115,17 @@ class SimpleTracer:
             if will_record_current_event:
                 current = events.MethodEnterEvent(cursor, self.get_execution_stack(), now)
                 variables = current.input_variables
-                self.push_traceable_variables(frame, variables)
+                if self.file_filter.should_record_variables():
+                    self.push_traceable_variables(frame, variables)
                 self.event_buffer.append(current)
 
         if event == EventKeys.line:
-            self.call_stack.new_cursor_in_current_frame(cursor)
+            # self.call_stack.new_cursor_in_current_frame(cursor)
             if will_record_current_event:
+                self.call_stack.new_cursor_in_current_frame(cursor)
                 current = events.LineExecutionEvent(cursor, self.get_execution_stack(), now)
-                self.push_traceable_variables(frame, current.locals)
+                if self.file_filter.should_record_variables():
+                    self.push_traceable_variables(frame, current.locals)
                 self.event_buffer.append(current)
 
         if event == EventKeys.event_return:
@@ -129,8 +133,11 @@ class SimpleTracer:
             if will_record_current_event:
                 current = events.MethodExitEvent(cursor, self.get_execution_stack(), now)
                 current.return_variables.push_variable('__return', arg)
-                self.push_traceable_variables(frame, current.locals)
+                if self.file_filter.should_record_variables():
+                    self.push_traceable_variables(frame, current.locals)
                 self.event_buffer.append(current)
+
+        self.flush_queue_if_full()
 
     def get_execution_stack(self):
         return self.call_stack.current_frame()
@@ -139,5 +146,17 @@ class SimpleTracer:
         for (name, value) in frame.f_locals.items():
             # todo use variable values diffing
             variables.push_variable(name, value)
+
+    def flush_outstanding_events(self):
+        old_buffer = self.event_buffer
+        self.event_buffer = []
+
+        self.queue.put_events(EventsSlice(self.session.session_name, self.event_number, old_buffer))
+        self.event_number += 1
+
+    def flush_queue_if_full(self):
+        if len(self.event_buffer) >= self.max_events_before_send:
+            self.flush_outstanding_events()
+
 
 

@@ -1,4 +1,4 @@
-from pycrunch_tracer.api.tracing import Yoba
+from pycrunch_tracer.client.api.yoba import Yoba
 
 yoba = Yoba()
 yoba.start(session_name='demo_no_functon_calls')

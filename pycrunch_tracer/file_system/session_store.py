@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import List
 
+from pycrunch_tracer.config import config
 from pycrunch_tracer.file_system.persisted_session import PersistedSession, LazyLoadedSession
 
 
@@ -8,7 +9,7 @@ class SessionStore:
     recording_directory: Path
 
     def __init__(self):
-        self.recording_directory = Path.joinpath(Path(__file__).parent, 'pycrunch-recordings')
+        self.recording_directory = config.recording_directory
         pass
 
     def all_sessions(self) -> List[str]:

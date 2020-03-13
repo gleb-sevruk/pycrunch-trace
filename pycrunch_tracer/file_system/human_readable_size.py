@@ -8,7 +8,7 @@ class HumanReadableByteSize:
     @staticmethod
     def human_readable_size(size, decimal_places=1):
         if size < 1024:
-            return f"{size} bytes"
+            return f"{round(size)} bytes"
         for unit in ['B', 'Kb', 'MB', 'GB', 'TB']:
             if size < 1024.0:
                 break

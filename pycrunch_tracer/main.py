@@ -4,31 +4,26 @@ import io
 # import aiohttp_debugtoolbar
 import logging.config
 
-import pickle
 from pathlib import Path
 
 import yaml
 from aiohttp import web
 import socketio
+from pycrunch.api.shared import sio
 
 from pycrunch_tracer.config import config
-from pycrunch_tracer.events.serialized_proto import EventBufferInProtobuf
-from pycrunch_tracer.file_system.session_store import SessionStore
-from pycrunch_tracer.file_system.trace_session import TraceSession
-from pycrunch_tracer.filters import CustomFileFilter
-from pycrunch_tracer.oop import Directory, WriteableFile
-from pycrunch_tracer.oop.file import File
-from pycrunch_tracer.serialization import to_string
-from pycrunch_tracer.session import active_clients
-from pycrunch_tracer.session.snapshot import snapshot
 
 import cgitb
 cgitb.enable(format='text')
 
 
+
+
+
 package_directory = Path(__file__).parent
 print(package_directory)
 engine_directory = package_directory.parent
+config.set_package_directory(package_directory)
 config.set_engine_directory(engine_directory)
 configuration_yaml_ = package_directory.joinpath('logging-configuration.yaml')
 print(configuration_yaml_)
@@ -42,170 +37,54 @@ logger = logging.getLogger(__name__)
 
 
 
+import sys
+
+if sys.platform == 'win32':
+    policy = asyncio.get_event_loop_policy()
+    policy._loop_factory = asyncio.ProactorEventLoop
+
+async def shutdown(loop, signal=None):
+    print('PTrace Server: shutdown')
+    """Cleanup tasks tied to the service's shutdown."""
+    if signal:
+        logging.info(f"Received exit signal {signal.name}...")
+    logging.info("Closing database connections")
+
+def handle_exception(loop, context):
+    # context["message"] will always be there; but context["exception"] may not
+    print('PTrace Server: !!!PISOS')
+    print('PTrace Server: handle_exception')
+    msg = context.get("exception", context["message"])
+    print('error was : ' + str(msg))
+
+    logging.error(f"Caught exception: {msg}")
+    logging.info("Shutting down...")
+    # asyncio.create_task(shutdown(loop))
 
 def run():
     loop = asyncio.get_event_loop()
     loop.set_debug(True)
-    sio = socketio.AsyncServer(cors_allowed_origins='*')
+    loop.set_exception_handler(handle_exception)
+
     app = web.Application()
     # aiohttp_debugtoolbar.setup(app)
 
-    sio.attach(app)
-    connections = active_clients.ActiveConnections()
+    #  keep import outside main
+    from pycrunch_tracer.server.shared import tracer_socket_server
+
+    # attach sio events
+    # noinspection PyUnresolvedReferences
+    import pycrunch_tracer.server.recording_server_websocket
+
+    tracer_socket_server.attach(app)
+
+
     async def index(request):
         """Serve the client-side application."""
         with io.open(config.absolute_path, 'r') as f:
             lines = f.read()
             return web.Response(text=lines, content_type='application/json')
 
-    @sio.event
-    async def connect(sid, environ):
-        print("connect -", sid)
-        # print("connect - environ", environ)
-        product_name = environ.get('HTTP_PRODUCT')
-        if product_name:
-            if product_name == 'pycrunch-tracing-node':
-                version = environ.get('HTTP_VERSION')
-                connections.tracer_did_connect(sid, version)
-                await sio.emit('front', dict(
-                    event_name='new_tracker',
-                    sid=sid,
-                    version=version,
-                ))
-
-
-    async def new_recording(req, sid):
-        logger.info('Started saving new recording')
-        event_buffer_bytes = req.get('buffer')
-        # todo this is double loading
-        if (event_buffer_bytes) :
-            x: TraceSession = pickle.loads(event_buffer_bytes)
-            x.save()
-
-        logger.info('Recording saved successfully')
-        await load_sessions(None)
-        # await sio.emit('reply', event_buffer)
-
-
-    @sio.event
-    async def event(sid, req):
-        # print(req)
-        action: str = req.get('action')
-        logger.info(f'WebSocket event: {action}')
-
-        if action == 'load_buffer':
-            await load_buffer_event(action, sid)
-        elif action == 'load_file':
-            await load_file_event(req, sid)
-        elif action == 'load_profiles':
-            await load_profiles_event(req, sid)
-        elif action == 'load_sessions':
-            await load_sessions(sid)
-        elif action == 'load_profile_details':
-            await load_profile_details(req, sid)
-        elif action == 'load_single_session':
-            await load_single_session(req, sid)
-        elif action == 'save_profile_details':
-            await save_profile_details(req, sid)
-        elif action == 'new_recording':
-            print('new_recording')
-            await new_recording(req, sid)
-        else:
-            await sio.emit('reply_unknown', room=sid)
-
-    async def load_sessions(sid):
-        logging.debug('Loading sessions')
-        store = SessionStore()
-        all_names = store.all_sessions()
-        result = []
-        for name in all_names:
-            lazy_loaded = store.load_session(name)
-            lazy_loaded.load_metadata()
-            metadata = lazy_loaded.raw_metadata
-            metadata['short_name'] = name
-            result.append(metadata)
-
-        logging.debug(f'Sessions loaded, sending back to client {sid}')
-        await sio.emit('session_list_loaded', result, room=sid)
-        pass
-
-    async def load_single_session(req, sid):
-        logger.info('begin: load_single_session...')
-        store = SessionStore()
-        session_name = req.get('session_name')
-        logging.info(f'Loading session {session_name}')
-        ses = store.load_session(session_name)
-        ses.load_buffer()
-        recording_file = File(ses.buffer_file)
-        logger.info('sending reply...')
-        # await sio.emit('reply', to_string(buffer), room=sid)
-        try:
-
-            file_as_bytes = recording_file.as_bytes()
-            logger.info('bytes loaded...')
-            await sio.emit('reply', data=file_as_bytes, room=sid)
-            logger.info('Event sent')
-
-        except Exception as ex:
-            logger.exception('Failed to load session ' + session_name, exc_info=ex)
-
-    async def save_profile_details(req, sid):
-        logger.debug(f'save_profile_details: `{req}`')
-        profile = req.get('profile')
-        profile_name = profile.get('profile_name')
-        xxx = yaml.dump(profile)
-        logger.debug(xxx)
-        profiles__joinpath = package_directory.joinpath('pycrunch-profiles').joinpath(profile_name)
-
-        WriteableFile(profiles__joinpath, xxx.encode('utf-8')).save()
-
-    async def load_file_event(req, sid):
-        file_to_load = req.get('file_to_load')
-        logger.debug(f'file_to_load: `{file_to_load}`')
-        with io.open(file_to_load, 'r', encoding='utf-8') as f:
-            lines = f.read()
-            await sio.emit('file_did_load', dict(filename=file_to_load, contents=lines), room=sid)
-
-
-    async def load_profile_details(req, sid):
-        d = Directory(package_directory.joinpath('pycrunch-profiles'))
-        profile_name = req.get('profile_name')
-        joinpath = package_directory.joinpath('pycrunch-profiles').joinpath(profile_name)
-        print(joinpath)
-        fff = CustomFileFilter(File(joinpath))
-
-        raw = fff.all_exclusions()
-
-        await sio.emit('profile_details_loaded', dict(exclusions=raw,
-            profile_name=profile_name), room=sid)
-
-    async def load_profiles_event(req, sid):
-        d = Directory(package_directory.joinpath('pycrunch-profiles'))
-        res = d.files('yaml')
-        print(res)
-        raw = []
-        for f in res:
-            raw.append(f.short_name())
-        await sio.emit('profiles_loaded', dict(profiles=raw), room=sid)
-
-        pass
-    async def load_buffer_event(action, sid):
-        # return
-        print('reply ', action)
-        event_buffer = snapshot.load('a')
-        # old = build_testing_events()
-        await sio.emit('reply', to_string(event_buffer), room=sid)
-
-
-    @sio.event
-    async def disconnect(sid):
-        logging.info(f'disconnect {sid}')
-        if connections.tracer_did_disconnect(sid):
-            logging.debug(f' -- sending notification about disconnected tracker {sid}')
-            await sio.emit('front', dict(
-                event_name='tracker_did_disconnect',
-                sid=sid,
-            ))
 
     # app.router.add_static('/static', 'static')
     app.router.add_get('/', index)

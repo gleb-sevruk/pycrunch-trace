@@ -1,4 +1,4 @@
-from pycrunch_tracer.api.tracing import Yoba
+from pycrunch_tracer.client.api.yoba import Yoba
 
 def d___():
     a = 1
@@ -38,5 +38,5 @@ y.stop()
 # print(y._tracer.simulation.simulated_code())
 # import pydevd_pycharm
 # pydevd_pycharm.settrace('localhost', port=44441, stdoutToServer=True, stderrToServer=True)
-for (x, cmd) in enumerate(y.command_buffer):
-    print(str(x+1) + ' - line:' + str(cmd.cursor.line) + ':' + str(cmd))
+# for (x, cmd) in enumerate(y.command_buffer):
+#     print(str(x+1) + ' - line:' + str(cmd.cursor.line) + ':' + str(cmd))

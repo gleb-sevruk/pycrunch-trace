@@ -1,6 +1,6 @@
 import requests
 
-from pycrunch_tracer.api.tracing import Yoba
+from pycrunch_tracer.client.api.yoba import Yoba
 
 
 def some_method():

@@ -6,7 +6,7 @@ from pycrunch_tracer.tracing.simple_tracer import SimpleTracer
 
 #
 event_buffer = []
-tracer = SimpleTracer(event_buffer)
+tracer = SimpleTracer(event_buffer,,
 sys.settrace(tracer.simple_tracer)
 
 # module_b.some_method(3)

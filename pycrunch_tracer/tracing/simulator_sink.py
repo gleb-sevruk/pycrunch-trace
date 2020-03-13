@@ -1,7 +1,7 @@
 from typing import List, Any, Optional
 
-from pycrunch_tracer.simulation import models
-from pycrunch_tracer.simulation.models import Frame
+from pycrunch_tracer.tracing.simulation import models
+from pycrunch_tracer.tracing.simulation.models import Frame
 
 
 class SimulationEvent:
