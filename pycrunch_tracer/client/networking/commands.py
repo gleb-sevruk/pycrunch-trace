@@ -1,3 +1,7 @@
+from typing import Dict
+
+from pycrunch_tracer.tracing.file_map import FileMap
+
 
 class AbstractNetworkCommand:
     command_name: str
@@ -11,7 +15,10 @@ class StartCommand(AbstractNetworkCommand):
         self.command_name = 'StartCommand'
 
 class EventsSlice(AbstractNetworkCommand):
-    def __init__(self, session_id: str, chunk_number: int, events: list):
+    files: Dict[str, int]
+
+    def __init__(self, session_id: str, chunk_number: int, events: list, files: Dict[str, int]):
+        self.files = files
         self.chunk_number = chunk_number
         self.events = events
         self.command_name = 'EventsSlice'

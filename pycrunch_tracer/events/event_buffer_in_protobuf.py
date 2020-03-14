@@ -1,11 +1,15 @@
-from typing import Union
+from typing import Union, Dict
 
 from pycrunch_tracer.events.base_event import Event
 from pycrunch_tracer.proto import message_pb2
+from pycrunch_tracer.tracing.file_map import FileMap
 
 
 class EventBufferInProtobuf:
-    def __init__(self, event_buffer):
+    files: Dict[str, int]
+
+    def __init__(self, event_buffer, files: Dict[str, int]):
+        self.files = files
         self.event_buffer = event_buffer
 
     def as_bytes(self):
@@ -38,10 +42,20 @@ class EventBufferInProtobuf:
             else:
                 frame.id = 0
 
-            # print(aaaa)
             session.stack_frames.append(frame)
 
+        self.add_files_to_pb_envelope(session)
+
         return session.SerializeToString()
+
+    def add_files_to_pb_envelope(self, session):
+        for (filename, file_id) in self.files.items():
+            current_file = message_pb2.File()
+            # print(f'file_id: {file_id}')
+            # print(f'filename: {filename}')
+            current_file.id = file_id
+            current_file.file = filename
+            session.files.append(current_file)
 
     def pb_event_from_py(self, e: Event):
         evt = message_pb2.TraceEvent()

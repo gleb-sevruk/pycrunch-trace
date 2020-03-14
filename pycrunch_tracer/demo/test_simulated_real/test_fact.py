@@ -707,7 +707,7 @@ def test_simulated():
     # ses = ss.new_session('round_demo')
     # ses.save_with_metadata()
 
-    bytesAsString = event_buffer_in_protobuf.EventBufferInProtobuf(event_buffer).as_bytes()
+    bytesAsString = event_buffer_in_protobuf.EventBufferInProtobuf(event_buffer, x.file_map).as_bytes()
     trace(vbbbb=str(bytesAsString))
     print(len(bytesAsString))
     session_round = message_pb2.TraceSession()

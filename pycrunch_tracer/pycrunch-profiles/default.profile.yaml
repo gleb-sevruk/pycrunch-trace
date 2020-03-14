@@ -3,6 +3,13 @@ exclusions:
 - Workbook.py
 #- /Users/gleb/venv/ba-admin/lib/python3.6/site-packages/setuptools-39.1.0
 #- /Users/gleb/venv/ba-admin/lib/python3.6/site-packages/django
+#- /Users/gleb/venv/ba-admin/lib/python3.6/site-packages/raven/
+#- /Users/gleb/venv/ba-admin/lib/python3.6/site-packages/setuptools-39.1.0-py3.6.egg/pkg_resources/
+#- /Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/posixpath.py
+#- /Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/urllib/parse.py
+#- /Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/
+#- /Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/genericpath.py
+#- /Users/gleb/venv/ba-admin/lib/python3.6/site-packages/django/template/base.py
 - <
 - /Users/gleb/venv/PyCrunch/lib/python3.6/site-packages/
 - /Users/gleb/venv/pycrunch_tracing2/lib/python3.6/site-packages/pluggy

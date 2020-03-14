@@ -196,7 +196,7 @@ async def save_profile_details(req, sid):
 
 async def load_file_event(req, sid):
     file_to_load = req.get('file_to_load')
-    # logger.debug(f'file_to_load: `{file_to_load}`')
+    logger.debug(f'file_to_load: `{file_to_load}`')
     with io.open(file_to_load, 'r', encoding='utf-8') as f:
         lines = f.read()
         await shared.tracer_socket_server.emit('file_did_load', dict(filename=file_to_load, contents=lines), room=sid)

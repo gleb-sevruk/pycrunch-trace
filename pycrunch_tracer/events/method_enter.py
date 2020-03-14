@@ -6,10 +6,10 @@ from ..filters import can_trace_type
 
 class ExecutionCursor:
     function_name: str
-    file: str
+    file: int
     line: int
 
-    def __init__(self, file: str, line: int, function_name: str):
+    def __init__(self, file: int, line: int, function_name: str):
         self.function_name = function_name
         self.file = file
         self.line = line
@@ -28,7 +28,7 @@ stack_ids = StackFrameIds()
 
 class StackFrame:
     # parent: StackFrame
-    def __init__(self, parent, file: str, line: int, function_name: str):
+    def __init__(self, parent, file: id, line: int, function_name: str):
         self.parent = parent
         self.file = file
         self.line = line
@@ -72,6 +72,8 @@ class Variables:
         # return 'a'
         if not can_trace_type(value):
             value = str(type(value))
+        if type(value) == dict:
+            return value.copy()
         return value
 
 

@@ -9,6 +9,7 @@ def some_method():
         accum_counter += 1
         # try:
         r = requests.get('http://dev.iws.briteapps.space/')
+        # r = requests.get('https://google.com/')
         # print(r.status_code)
         # print(r.content)
         x = accum_counter

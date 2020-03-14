@@ -6,7 +6,7 @@ from time import sleep
 import socketio
 from socketio import Client
 
-from pycrunch_tracer.client.api.version import version
+from pycrunch_tracer.client.networking.client_trace_introspection import client_introspection
 from pycrunch_tracer.client.networking.commands import EventsSlice, StopCommand, AbstractNetworkCommand, StartCommand
 
 from pycrunch_tracer.events.event_buffer_in_protobuf import EventBufferInProtobuf
@@ -46,6 +46,7 @@ class ClientQueueThread:
         self.is_connected = False
         self.outgoingQueue = Queue()
         self.is_thread_running = False
+        self.manual_reset_event = threading.Event()
 
     def tracing_will_start(self, session_id: str):
         self.ensure_thread_started()
@@ -94,6 +95,7 @@ class ClientQueueThread:
         # transports = ['polling']
         print('socketio connect')
         self.sio.connect(url=self.host,transports=transports, headers=self.connection_headers() )
+        # self.sio.connect(url=self.host, headers=self.connection_headers() )
 
         @self.sio.event
         def message(data):
@@ -108,6 +110,7 @@ class ClientQueueThread:
         def connect():
             print('connect')
             self.is_connected = True
+            self.manual_reset_event.set()
             logger.info("CLIENT: I'm connected!")
 
         @self.sio.event
@@ -120,11 +123,18 @@ class ClientQueueThread:
             print('disconnect')
             # put everything in garbage?
             self.is_connected = False
+            logger.info("Clearing event... until connection established back")
+            self.manual_reset_event.clear()
+
             logger.info("CLIENT: I'm disconnected!")
 
         def callback():
             print(f'#callback : delivered')
+
             logger.info(f'#callback : delivered')
+            print(f'#callback : event set')
+            self.manual_reset_event.set()
+
             # logger.info(args)
 
         def callback_for_disconnection():
@@ -155,21 +165,29 @@ class ClientQueueThread:
                 logger.info('Sending... '+ x.command_name)
                 if x.command_name == 'EventsSlice':
                     x : EventsSlice = x
-                    logger.info(f'Thrown {len(x.events)} to garbage')
-                    self__counter = str(self._counter)
+                    # client_introspection.save_events(x.events)
+                    # client_introspection.print_to_console(x.files)
                     events_in_payload = len(x.events)
-                    # bytes_to_send = EventBufferInProtobuf(x.events).as_bytes()
-                    # self.sio.emit('tracing_node_event',
-                    #               dict(
-                    #                   action='events_stream',
-                    #                   session_id=x.session_id,
-                    #                   event_number=x.chunk_number,
-                    #                   bytes=bytes_to_send,
-                    #                   events_in_payload=events_in_payload,
-                    #                   payload_size=len(bytes_to_send)),
-                    #               callback=callback)
+                    bytes_to_send = EventBufferInProtobuf(x.events, x.files).as_bytes()
+                    print(f'manual_reset_event.waiting...')
+                    self.manual_reset_event.wait()
+                    print(f' -- done waiting for manual_reset_event, sending chunk')
+                    payload_size = len(bytes_to_send)
+                    print(f' -- sending chunk {x.chunk_number} of {x.session_id} with size {payload_size}')
+                    self.sio.emit('tracing_node_event',
+                                  dict(
+                                      action='events_stream',
+                                      session_id=x.session_id,
+                                      event_number=x.chunk_number,
+                                      bytes=bytes_to_send,
+                                      events_in_payload=events_in_payload,
+                                      payload_size=payload_size),
+                                  callback=callback)
+                    sleep(0.1)
                     logger.info('Sent... '+ x.command_name)
             except Empty:
+                print('Timeout while waiting for new msg... Thread will stop for now')
+                break
                 pass
 
             except Exception as ex:
@@ -183,6 +201,7 @@ class ClientQueueThread:
         self.sio.disconnect()
 
     def connection_headers(self):
+        from pycrunch_tracer.client.api.version import version
         connection_headers = dict(
             version=version,
             product='pycrunch-tracing-node',

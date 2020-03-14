@@ -111,7 +111,7 @@ class PersistedSession:
         self.save_metadata(self.session_directory, meta)
 
     def serialize_to_bytes(self, event_buffer):
-        return EventBufferInProtobuf(event_buffer).as_bytes()
+        return EventBufferInProtobuf(event_buffer, x.file_map).as_bytes()
         # todo add multiple serialization plugin/options
         # return pickle.dumps(event_buffer)
 

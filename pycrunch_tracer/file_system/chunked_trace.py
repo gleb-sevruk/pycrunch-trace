@@ -13,6 +13,7 @@ class ChunkedTrace:
 
 
     def events(self) -> list:
+        file_map = dict()
         entire_session = message_pb2.TraceSession()
         events_so_far = 0
         with io.FileIO(self.filename, 'r') as file_to_read:
@@ -27,7 +28,11 @@ class ChunkedTrace:
 
                 read_bytes = file_to_read.read(next_chunk_length)
                 interrim = message_pb2.TraceSession()
-                interrim.ParseFromString(read_bytes)
+                try:
+                    interrim.ParseFromString(read_bytes)
+                except Exception as eeeeeee:
+                    print(eeeeeee)
+                    raise
 
                 print(f'total stack_frames {len(interrim.stack_frames)}')
                 for stack_frame in interrim.stack_frames:
@@ -36,5 +41,13 @@ class ChunkedTrace:
                 print(f'total events {events_so_far}')
                 for event in interrim.events:
                     entire_session.events.append(event)
+                for f in interrim.files:
+                    file_map[f.file] = f.id
+
+        for (file, file_id) in file_map.items():
+            result_file = message_pb2.File()
+            result_file.id = file_id
+            result_file.file = file
+            entire_session.files.append(result_file)
 
         return entire_session

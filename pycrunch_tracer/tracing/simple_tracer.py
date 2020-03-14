@@ -7,6 +7,7 @@ from pycrunch_tracer.client.networking.commands import EventsSlice
 from pycrunch_tracer.file_system.trace_session import TraceSession
 from pycrunch_tracer.filters import AbstractFileFilter
 from pycrunch_tracer.oop import Clock
+from pycrunch_tracer.tracing.file_map import FileMap
 from pycrunch_tracer.tracing.simulation import EventKeys
 from pycrunch_tracer.tracing.simulator_sink import SimulatorSink, DisabledSimulatorSink
 
@@ -55,6 +56,7 @@ class CallStack:
         return frame
 
 class SimpleTracer:
+    file_map: FileMap
     event_number: int
     file_filter: AbstractFileFilter
     event_buffer: List
@@ -70,18 +72,16 @@ class SimpleTracer:
         self.call_stack = CallStack()
         self.session = TraceSession(session_name)
         self.simulation = DisabledSimulatorSink()
+        self.file_map = FileMap()
         # self.simulation = SimulatorSink()
 
         self.queue = queue
-        self.max_events_before_send = 5000
+        self.max_events_before_send = 1000
 
     def simple_tracer(self, frame: models.Frame, event: str, arg):
-        # f_type = type(frame)
-        # print(f_type.__module__ + '.' + f_type.__qualname__)
+
         co = frame.f_code
-        # func_name = co.co_name
         file_path_under_cursor = co.co_filename
-        # line_no = frame.f_lineno
         if not self.file_filter.should_trace(file_path_under_cursor):
             self.session.will_skip_file(file_path_under_cursor)
             # Ignore calls not in this module
@@ -103,7 +103,8 @@ class SimpleTracer:
         now = self.clock.now()
         will_record_current_event = False
         file_path_under_cursor = frame.f_code.co_filename
-        cursor = events.ExecutionCursor(frame.f_code.co_filename, frame.f_lineno, frame.f_code.co_name)
+        file_id = self.file_map.file_id(file_path_under_cursor)
+        cursor = events.ExecutionCursor(file_id, frame.f_lineno, frame.f_code.co_name)
         if not self.file_filter.should_trace(file_path_under_cursor):
             self.session.will_skip_file(file_path_under_cursor)
         else:
@@ -112,10 +113,12 @@ class SimpleTracer:
 
         if event == EventKeys.call:
             self.call_stack.enter_frame(cursor)
+            # lets try to add methods
+            # [if sampling mode]
             if will_record_current_event:
                 current = events.MethodEnterEvent(cursor, self.get_execution_stack(), now)
-                variables = current.input_variables
                 if self.file_filter.should_record_variables():
+                    variables = current.input_variables
                     self.push_traceable_variables(frame, variables)
                 self.event_buffer.append(current)
 
@@ -130,10 +133,11 @@ class SimpleTracer:
 
         if event == EventKeys.event_return:
             self.call_stack.exit_frame()
+            # [? is sampling]
             if will_record_current_event:
                 current = events.MethodExitEvent(cursor, self.get_execution_stack(), now)
-                current.return_variables.push_variable('__return', arg)
                 if self.file_filter.should_record_variables():
+                    current.return_variables.push_variable('__return', arg)
                     self.push_traceable_variables(frame, current.locals)
                 self.event_buffer.append(current)
 
@@ -151,7 +155,7 @@ class SimpleTracer:
         old_buffer = self.event_buffer
         self.event_buffer = []
 
-        self.queue.put_events(EventsSlice(self.session.session_name, self.event_number, old_buffer))
+        self.queue.put_events(EventsSlice(self.session.session_name, self.event_number, old_buffer, self.file_map.files.copy()))
         self.event_number += 1
 
     def flush_queue_if_full(self):

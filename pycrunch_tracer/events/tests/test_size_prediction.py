@@ -83,11 +83,18 @@ def test_old_size():
 def test_new_size():
     total_files = 255
     files_in_session = []
+    size_files = 0
     for x in range(total_files):
-        files_in_session.append(random_filename())
+
+        filename = random_filename()
+        size_files += len(files_in_session)
+        files_in_session.append(filename)
+
+    trace(size_files=size_files)
+
     # trace(files_in_session=files_in_session)
     total = 0
-    for x in range(1000000):
+    for x in range(10000):
         total += size_of_new_random_event(files_in_session)
     # 10000 ='3.2 MB'
     # 100000 = 31 MB
