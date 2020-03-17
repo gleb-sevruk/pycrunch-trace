@@ -34,16 +34,19 @@ class ChunkedTrace:
                     print(eeeeeee)
                     raise
 
-                print(f'total stack_frames {len(interrim.stack_frames)}')
                 for stack_frame in interrim.stack_frames:
                     entire_session.stack_frames.append(stack_frame)
+                print(f'total stack_frames {len(entire_session.stack_frames)}')
                 events_so_far += len(interrim.events)
                 print(f'total events {events_so_far}')
                 for event in interrim.events:
                     entire_session.events.append(event)
+
                 for f in interrim.files:
                     file_map[f.file] = f.id
 
+                if events_so_far > 10000000:
+                    break
         for (file, file_id) in file_map.items():
             result_file = message_pb2.File()
             result_file.id = file_id

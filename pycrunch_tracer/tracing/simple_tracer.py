@@ -8,6 +8,7 @@ from pycrunch_tracer.file_system.trace_session import TraceSession
 from pycrunch_tracer.filters import AbstractFileFilter
 from pycrunch_tracer.oop import Clock
 from pycrunch_tracer.tracing.file_map import FileMap
+from pycrunch_tracer.tracing.perf import TracerPerf
 from pycrunch_tracer.tracing.simulation import EventKeys
 from pycrunch_tracer.tracing.simulator_sink import SimulatorSink, DisabledSimulatorSink
 
@@ -34,6 +35,7 @@ class CallStack:
         stack_frame.function_name = new_cursor.function_name
         # todo this is probably dirty hack?
         # or just replacing last-known stack frame
+        #  todo what about performance ?
         if len(self.stack) > 0:
             self.stack[-1] = stack_frame
         else:
@@ -72,16 +74,33 @@ class SimpleTracer:
         self.call_stack = CallStack()
         self.session = TraceSession(session_name)
         self.simulation = DisabledSimulatorSink()
-        self.file_map = FileMap()
         # self.simulation = SimulatorSink()
+        self.file_map = FileMap()
+        self.perf = TracerPerf()
 
         self.queue = queue
-        self.max_events_before_send = 1000
+        self.max_events_before_send = 20000
+        self.skip = False
 
     def simple_tracer(self, frame: models.Frame, event: str, arg):
+        entered_at = self.clock.now()
+        if not self.skip:
+            co = frame.f_code
+            file_path_under_cursor = co.co_filename
+            self.record_file_hit(file_path_under_cursor)
 
-        co = frame.f_code
-        file_path_under_cursor = co.co_filename
+            self.process_events(event, frame, arg)
+            self.simulation.save_for_simulator(frame, event, arg)
+
+            # print(f"[{co.co_argcount}]{event}: {func_name} {line_no} -> {arg}")
+            # print(f"   {frame.f_locals}")
+
+        end_at = self.clock.now()
+        diff = end_at - entered_at
+        self.perf.did_execute_line(diff)
+        return self.simple_tracer
+
+    def record_file_hit(self, file_path_under_cursor):
         if not self.file_filter.should_trace(file_path_under_cursor):
             self.session.will_skip_file(file_path_under_cursor)
             # Ignore calls not in this module
@@ -92,26 +111,15 @@ class SimpleTracer:
         else:
             self.session.did_enter_traceable_file(file_path_under_cursor)
 
-        self.process_events(event, frame, arg)
-        self.simulation.save_for_simulator(frame, event, arg)
-
-        # print(f"[{co.co_argcount}]{event}: {func_name} {line_no} -> {arg}")
-        # print(f"   {frame.f_locals}")
-        return self.simple_tracer
-
     def process_events(self, event: str, frame: models.Frame, arg):
         now = self.clock.now()
         will_record_current_event = False
         file_path_under_cursor = frame.f_code.co_filename
-        file_id = self.file_map.file_id(file_path_under_cursor)
-        cursor = events.ExecutionCursor(file_id, frame.f_lineno, frame.f_code.co_name)
-        if not self.file_filter.should_trace(file_path_under_cursor):
-            self.session.will_skip_file(file_path_under_cursor)
-        else:
+        if self.file_filter.should_trace(file_path_under_cursor):
             will_record_current_event = True
-            self.session.did_enter_traceable_file(file_path_under_cursor)
 
         if event == EventKeys.call:
+            cursor = self.create_cursor(file_path_under_cursor, frame)
             self.call_stack.enter_frame(cursor)
             # lets try to add methods
             # [if sampling mode]
@@ -123,8 +131,10 @@ class SimpleTracer:
                 self.event_buffer.append(current)
 
         if event == EventKeys.line:
-            # self.call_stack.new_cursor_in_current_frame(cursor)
+            # uncomment to enable sampling
+            # will_record_current_event = True
             if will_record_current_event:
+                cursor = self.create_cursor(file_path_under_cursor, frame)
                 self.call_stack.new_cursor_in_current_frame(cursor)
                 current = events.LineExecutionEvent(cursor, self.get_execution_stack(), now)
                 if self.file_filter.should_record_variables():
@@ -135,6 +145,7 @@ class SimpleTracer:
             self.call_stack.exit_frame()
             # [? is sampling]
             if will_record_current_event:
+                cursor = self.create_cursor(file_path_under_cursor, frame)
                 current = events.MethodExitEvent(cursor, self.get_execution_stack(), now)
                 if self.file_filter.should_record_variables():
                     current.return_variables.push_variable('__return', arg)
@@ -142,6 +153,11 @@ class SimpleTracer:
                 self.event_buffer.append(current)
 
         self.flush_queue_if_full()
+
+    def create_cursor(self, file_path_under_cursor, frame):
+        file_id = self.file_map.file_id(file_path_under_cursor)
+        cursor = events.ExecutionCursor(file_id, frame.f_lineno, frame.f_code.co_name)
+        return cursor
 
     def get_execution_stack(self):
         return self.call_stack.current_frame()
@@ -154,6 +170,7 @@ class SimpleTracer:
     def flush_outstanding_events(self):
         old_buffer = self.event_buffer
         self.event_buffer = []
+        self.perf.print_avg_time()
 
         self.queue.put_events(EventsSlice(self.session.session_name, self.event_number, old_buffer, self.file_map.files.copy()))
         self.event_number += 1

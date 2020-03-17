@@ -176,7 +176,10 @@ async def load_single_session(req, sid):
 
         file_as_bytes = ses.load_buffer().SerializeToString()
         logger.info('bytes loaded...')
-        await shared.tracer_socket_server.emit('reply', data=file_as_bytes, room=sid)
+        #  todo maybe send back in chunks?
+        await shared.tracer_socket_server.emit('reply', data=file_as_bytes
+                                               , room=sid
+                                               )
         logger.info('Event sent')
 
     except Exception as ex:

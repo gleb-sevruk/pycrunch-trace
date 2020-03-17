@@ -1,5 +1,5 @@
-# allowed_types = [int, str, float, dict, type(None), bool]
-allowed_types = [int, str, float,  type(None), bool]
+allowed_types = [int, str, float, dict, type(None), bool]
+# allowed_types = [int, str, float,  type(None), bool]
 
 
 def can_trace_type(variable):

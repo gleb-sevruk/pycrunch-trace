@@ -1,15 +1,9 @@
 import threading
-import uuid
 from queue import Queue, Empty
-from time import sleep
 
-import socketio
-from socketio import Client
-
-from pycrunch_tracer.client.networking.client_trace_introspection import client_introspection
 from pycrunch_tracer.client.networking.commands import EventsSlice, StopCommand, AbstractNetworkCommand, StartCommand
-
-from pycrunch_tracer.events.event_buffer_in_protobuf import EventBufferInProtobuf
+from pycrunch_tracer.client.networking.strategies.local_write_strategy import LocalRecordingStrategy
+from pycrunch_tracer.client.networking.strategies.network_strategy import AbstractRecordingStrategy, OverWireRecordingStrategy
 
 import logging
 
@@ -32,21 +26,24 @@ logger = logging.getLogger(__name__)
 import os
 
 class ClientQueueThread:
+    available_recording_strategies = ['network', 'local']
+
     is_thread_running: bool
     _counter: int
-    sio : Client
+    _strategy: AbstractRecordingStrategy
+
     def __init__(self):
-
-
         print(f'PID: {os.getpid()} ClientQueueThread init')
-        self.host = 'http://0.0.0.0:8080'
-        self.sio = None
         self._counter = 0
         self.so_far = 0
         self.is_connected = False
         self.outgoingQueue = Queue()
         self.is_thread_running = False
-        self.manual_reset_event = threading.Event()
+        current_strategy = 'local'
+        if current_strategy == 'network':
+            self._strategy = OverWireRecordingStrategy()
+        if current_strategy == 'local':
+            self._strategy = LocalRecordingStrategy()
 
     def tracing_will_start(self, session_id: str):
         self.ensure_thread_started()
@@ -78,7 +75,6 @@ class ClientQueueThread:
             return
 
         print('socketio init')
-        self.sio = socketio.Client()
         x = threading.Thread(target=self.thread_proc, args=(42,))
         # x.setDaemon(True)
         x.setDaemon(False)
@@ -90,101 +86,30 @@ class ClientQueueThread:
     def thread_proc(self, obj):
         logging.info("Thread ClientQueueThread::thread_proc: starting")
 
-        # self.sio = socketio.Client()
-        transports = ['websocket']
-        # transports = ['polling']
-        print('socketio connect')
-        self.sio.connect(url=self.host,transports=transports, headers=self.connection_headers() )
-        # self.sio.connect(url=self.host, headers=self.connection_headers() )
+        self._strategy.prepare()
 
-        @self.sio.event
-        def message(data):
-            logger.info('CLIENT: I received a message!')
-
-        @self.sio.on('my message')
-        def on_message(data):
-            print('on_message')
-            logger.info('CLIENT: I received a message!')
-
-        @self.sio.event
-        def connect():
-            print('connect')
-            self.is_connected = True
-            self.manual_reset_event.set()
-            logger.info("CLIENT: I'm connected!")
-
-        @self.sio.event
-        def connect_error():
-            print('connect_error')
-            logger.info("CLIENT: The connection failed!")
-
-        @self.sio.event
-        def disconnect():
-            print('disconnect')
-            # put everything in garbage?
-            self.is_connected = False
-            logger.info("Clearing event... until connection established back")
-            self.manual_reset_event.clear()
-
-            logger.info("CLIENT: I'm disconnected!")
-
-        def callback():
-            print(f'#callback : delivered')
-
-            logger.info(f'#callback : delivered')
-            print(f'#callback : event set')
-            self.manual_reset_event.set()
-
-            # logger.info(args)
-
-        def callback_for_disconnection():
-            print('Disconnection Callback')
-            # self.sio.disconnect()
 
         while True:
             logger.info('outgoingQueue.get: Waiting for message...')
             try:
-                x : AbstractNetworkCommand = self.outgoingQueue.get(True, 3)
+                x: AbstractNetworkCommand = self.outgoingQueue.get(True, 3)
                 print(f'queue length {len(self.outgoingQueue.queue)}')
 
 
                 if x is not None:
                     print(f'got evt {x.command_name}')
                     if x.command_name == 'StartCommand':
-                        self.sio.emit('tracing_node_event',
-                                      dict(
-                                          action='events_stream_will_start',
-                                          session_id=x.session_id),
-                                      )
+                        self._strategy.recording_start(x.session_id)
 
-                if x.command_name == 'StopCommand':
-                    logger.info('got '+ x.command_name)
-                    sleep(1)
-                    self.sio.emit('tracing_node_event', dict(action='events_stream_did_complete', session_id=x.session_id), callback=callback_for_disconnection)
+                    if x.command_name == 'StopCommand':
+                        logger.info('got '+ x.command_name)
+                        self._strategy.recording_stop(x.session_id)
 
-                logger.info('Sending... '+ x.command_name)
-                if x.command_name == 'EventsSlice':
-                    x : EventsSlice = x
-                    # client_introspection.save_events(x.events)
-                    # client_introspection.print_to_console(x.files)
-                    events_in_payload = len(x.events)
-                    bytes_to_send = EventBufferInProtobuf(x.events, x.files).as_bytes()
-                    print(f'manual_reset_event.waiting...')
-                    self.manual_reset_event.wait()
-                    print(f' -- done waiting for manual_reset_event, sending chunk')
-                    payload_size = len(bytes_to_send)
-                    print(f' -- sending chunk {x.chunk_number} of {x.session_id} with size {payload_size}')
-                    self.sio.emit('tracing_node_event',
-                                  dict(
-                                      action='events_stream',
-                                      session_id=x.session_id,
-                                      event_number=x.chunk_number,
-                                      bytes=bytes_to_send,
-                                      events_in_payload=events_in_payload,
-                                      payload_size=payload_size),
-                                  callback=callback)
-                    sleep(0.1)
-                    logger.info('Sent... '+ x.command_name)
+
+                    logger.info('Sending... '+ x.command_name)
+                    if x.command_name == 'EventsSlice':
+                        self._strategy.recording_slice(x, )
+                        logger.info('Sent... '+ x.command_name)
             except Empty:
                 print('Timeout while waiting for new msg... Thread will stop for now')
                 break
@@ -197,16 +122,9 @@ class ClientQueueThread:
                 continue
         # end while
         print('Thread stopped')
+        self._strategy.clean()
         self.is_thread_running = False
-        self.sio.disconnect()
 
-    def connection_headers(self):
-        from pycrunch_tracer.client.api.version import version
-        connection_headers = dict(
-            version=version,
-            product='pycrunch-tracing-node',
-        )
-        return connection_headers
 
     def ensure_thread_started(self):
         if not self.is_thread_running:
