@@ -2,12 +2,11 @@ import sys
 import uuid
 from pathlib import Path
 
-# from pycrunch_tracer.api import network_client
+from pycrunch_tracer.client.command_buffer import DequeCommandBuffer
 from pycrunch_tracer.client.networking import event_queue
-from pycrunch_tracer.client.networking.commands import EventsSlice
-from pycrunch_tracer.config import config
 from pycrunch_tracer.filters import CustomFileFilter
 from pycrunch_tracer.oop import File, Clock, SafeFilename
+from pycrunch_tracer.tracing.inline_profiler import inline_profiler_instance
 from pycrunch_tracer.tracing.simple_tracer import SimpleTracer
 
 
@@ -18,7 +17,7 @@ class Yoba:
 
     def __init__(self):
         self.default_host = 'http://0.0.0.0:8080'
-        self.command_buffer = []
+        self.command_buffer = DequeCommandBuffer()
         self.is_tracing = False
         self.session_name = None
         self._tracer = None
@@ -49,6 +48,7 @@ class Yoba:
         self.start_queue()
 
         self.clock = Clock()
+        # todo maybe move command buffer to tracer?
         self._tracer = SimpleTracer(self.command_buffer, self.session_name, f_filter, self.clock, self.outgoingQueue)
         self.outgoingQueue.start()
 
@@ -84,7 +84,7 @@ class Yoba:
 
     def stop(self):
         sys.settrace(None)
-
+        inline_profiler_instance.print_timings()
         # import pydevd_pycharm
         # pydevd_pycharm.settrace('localhost', port=44441, stdoutToServer=True, stderrToServer=True)
         print('tracing complete, saving results')

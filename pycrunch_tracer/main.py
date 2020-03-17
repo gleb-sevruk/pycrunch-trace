@@ -10,7 +10,6 @@ import yaml
 from aiohttp import web
 import socketio
 from pycrunch.api.shared import sio
-
 from pycrunch_tracer.config import config
 
 import cgitb

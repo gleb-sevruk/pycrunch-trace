@@ -63,6 +63,8 @@ class Variables:
     variables: dict
 
     def __init__(self):
+        # self.variables = None
+        # return
         self.variables = dict()
 
     def push_variable(self, name, value):
@@ -70,6 +72,7 @@ class Variables:
 
     def ensure_safe_for_serialization(self, value):
         # return 'a'
+        # todo is this slowdown?
         if not can_trace_type(value):
             value = str(type(value))
         if type(value) == dict:
