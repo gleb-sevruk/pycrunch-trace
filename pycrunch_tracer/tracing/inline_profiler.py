@@ -1,4 +1,4 @@
-from collections import deque
+from collections import deque, OrderedDict
 from typing import Dict, Any
 
 from pycrunch_tracer.oop import Clock
@@ -9,7 +9,7 @@ class InlineProfiler:
 
     def __init__(self):
         # method scope-> total time
-        self.timings = dict()
+        self.timings = OrderedDict()
         self.execution_stack = deque()
 
     def enter_scope(self, scope):

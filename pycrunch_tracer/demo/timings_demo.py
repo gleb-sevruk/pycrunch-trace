@@ -1,3 +1,4 @@
+import sys
 from time import sleep
 
 from pycrunch_tracer.client.api import yoba
@@ -8,6 +9,8 @@ def run(x):
     y = x
     sleep(0.3)
     b()
+    info = str(sys.float_info)
+    print(info)
     sleep(1)
 
 

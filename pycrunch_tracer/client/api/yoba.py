@@ -2,7 +2,7 @@ import sys
 import uuid
 from pathlib import Path
 
-from pycrunch_tracer.client.command_buffer import DequeCommandBuffer
+from pycrunch_tracer.client.command_buffer import DequeCommandBuffer, ArrayCommandBuffer
 from pycrunch_tracer.client.networking import event_queue
 from pycrunch_tracer.filters import CustomFileFilter
 from pycrunch_tracer.oop import File, Clock, SafeFilename
@@ -17,7 +17,7 @@ class Yoba:
 
     def __init__(self):
         self.default_host = 'http://0.0.0.0:8080'
-        self.command_buffer = DequeCommandBuffer()
+        self.command_buffer = ArrayCommandBuffer()
         self.is_tracing = False
         self.session_name = None
         self._tracer = None
