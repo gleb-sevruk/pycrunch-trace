@@ -2,13 +2,12 @@ import time
 import collections
 
 from pycrunch_tracer.client.networking.commands import EventsSlice
+from pycrunch_tracer.file_system.trace_session import TraceSession
 from pycrunch_tracer.tracing.file_map import FileMap
 from pycrunch_tracer.native.native_models cimport NativeCodeEvent, NativeExecutionCursor, NativeVariables, NativeVariable, NativeStackFrame
 
-
 allowed_types = [int, str, float, dict, type(None), bool]
 # allowed_types = [int, str, float,  type(None), bool]
-
 
 
 cdef class NativeCallStack:
@@ -57,7 +56,6 @@ cdef class NativeCallStack:
             self.stack.append(cloned)
         return cloned
 
-
     cdef exit_frame(self):
         self.stack.pop()
 
@@ -76,12 +74,10 @@ cdef class NativeCallStack:
         # ???
         # return current
 
-
     cdef NativeStackFrame current_frame(self):
         if len(self.stack) > 0:
             return self.stack[-1]
         return None
-
 
 cdef class NativeBuffer:
     cdef list _buffer
@@ -142,25 +138,32 @@ cdef class NativeClock:
 cdef class NativeTracer:
     cdef int event_number
     cdef int events_so_far
+    cdef bint should_trace_variables
     cdef str session_name
     cdef NativeClock clock
     cdef NativeTracerPerf perf
     cdef NativeBuffer event_buffer
     cdef int max_events_before_send
     cdef object file_map
+    cdef object file_filter
     cdef object queue
+    cdef object session
     cdef NativeCallStack call_stack
 
     # cpdef ClientQueueThread queue
 
-    def __init__(self, session_name, queue):
+    def __init__(self, session_name, queue, file_filter):
         self.events_so_far = 0
         self.clock = NativeClock()
         self.perf = NativeTracerPerf()
         self.event_buffer = NativeBuffer()
         self.session_name = session_name
-        self.max_events_before_send = 100
+        self.max_events_before_send = 500
         self.file_map = FileMap()
+        self.file_filter = file_filter
+        self.should_trace_variables = file_filter.should_record_variables()
+        self.session = TraceSession()
+
         self.queue = queue
         self.call_stack = NativeCallStack()
 
@@ -189,17 +192,26 @@ cdef class NativeTracer:
         cdef NativeCodeEvent current
         cdef NativeVariables input_variables
         cdef NativeVariables return_variables
-        cdef NativeVariables locals
+        cdef NativeVariables locals_v
         cdef NativeExecutionCursor current_cursor
         cdef NativeVariable return_var
         cdef NativeStackFrame stack
         cdef int line_no
+        cdef bint will_record_current_event
         cdef str function_name
-        line_no = frame.f_lineno
         file_path_under_cursor = frame.f_code.co_filename
+
+        if not self.file_filter.should_trace(file_path_under_cursor):
+            will_record_current_event = False
+            self.session.will_skip_file(file_path_under_cursor)
+        else:
+            will_record_current_event = True
+            self.events_so_far += 1
+            self.session.did_enter_traceable_file(file_path_under_cursor)
+
+        line_no = frame.f_lineno
         function_name = frame.f_code.co_name
         current = NativeCodeEvent()
-
 
         if event == 'call' or event == 'line' or event == 'return':
             file_id = self.file_map.file_id(file_path_under_cursor)
@@ -219,28 +231,34 @@ cdef class NativeTracer:
                 current.event_name = 'method_exit'
                 self.call_stack.exit_frame()
                 stack = self.call_stack.current_frame()
+            if not will_record_current_event:
+                # do not go any further
+                return
 
             current.cursor = current_cursor
             current.stack = stack
             current.ts = entered_at
-            locals = NativeVariables()
-            locals.variables = []
-            self.push_traceable_variables(frame, locals)
-            current.locals = locals
+            if self.should_trace_variables:
+                if event == 'line':
+                    locals_v = NativeVariables()
+                    locals_v.variables = []
+                    self.push_traceable_variables(frame, locals_v)
+                    current.locals = locals_v
 
-            if event == 'call':
-                input_variables = NativeVariables()
-                input_variables.variables = []
-                self.push_traceable_variables(frame, input_variables)
-                current.input_variables = input_variables
-            if event == 'return':
-                return_variables = NativeVariables()
-                return_variables.variables = []
-                return_var = NativeVariable()
-                return_var.name = '__return'
-                return_var.value = self.ensure_safe_for_serialization(arg)
-                return_variables.variables.append(return_var)
-                current.return_variables = return_variables
+                if event == 'call':
+                    input_variables = NativeVariables()
+                    input_variables.variables = []
+                    self.push_traceable_variables(frame, input_variables)
+                    current.input_variables = input_variables
+                if event == 'return':
+                    return_variables = NativeVariables()
+                    return_variables.variables = []
+                    return_var = NativeVariable()
+                    return_var.name = '__return'
+                    return_var.value = self.ensure_safe_for_serialization(arg)
+                    return_variables.variables.append(return_var)
+                    current.return_variables = return_variables
+
             self.add_to_event_buffer(current)
 
         self.flush_queue_if_full()
@@ -260,7 +278,6 @@ cdef class NativeTracer:
             current.name = name
             current.value = self.ensure_safe_for_serialization(value)
             locals.variables.append(current)
-
 
     def add_to_event_buffer(self, current):
         # todo: is this caused because of array dynamic size/doubling?

@@ -65,26 +65,29 @@ cdef class NativeEventBufferInProtobuf:
         evt = message_pb2.TraceEvent()
         evt.event_name = e.event_name
         evt.ts = e.ts
-        if e.event_name == 'line' or e.event_name == 'method_exit':
-            for v in e.locals.variables:
-                pb_var = message_pb2.Variable()
-                pb_var.name = v.name
-                pb_var.value = v.value
-                evt.locals.variables.append(pb_var)
+        if e.event_name == 'line':
+            if e.locals is not None:
+                for v in e.locals.variables:
+                    pb_var = message_pb2.Variable()
+                    pb_var.name = v.name
+                    pb_var.value = v.value
+                    evt.locals.variables.append(pb_var)
 
         if e.event_name == 'method_enter':
-            for v in e.input_variables.variables:
-                pb_var = message_pb2.Variable()
-                pb_var.name = v.name
-                pb_var.value = v.value
-                evt.input_variables.variables.append(pb_var)
+            if e.input_variables is not None:
+                for v in e.input_variables.variables:
+                    pb_var = message_pb2.Variable()
+                    pb_var.name = v.name
+                    pb_var.value = v.value
+                    evt.input_variables.variables.append(pb_var)
 
         if e.event_name == 'method_exit':
-            for v in e.return_variables.variables:
-                pb_var = message_pb2.Variable()
-                pb_var.name = v.name
-                pb_var.value = v.value
-                evt.return_variables.variables.append(pb_var)
+            if e.return_variables is not None:
+                for v in e.return_variables.variables:
+                    pb_var = message_pb2.Variable()
+                    pb_var.name = v.name
+                    pb_var.value = v.value
+                    evt.return_variables.variables.append(pb_var)
 
         evt.cursor.file = e.cursor.file
         evt.cursor.line = e.cursor.line

@@ -47,6 +47,7 @@ class Yoba:
             profile_name = 'default.profile.yaml'
         package_directory = Path(__file__).parent.parent.parent
         f_filter = CustomFileFilter(File(package_directory.joinpath('pycrunch-profiles', profile_name)))
+        f_filter._ensure_loaded()
         # else:
         #     f_filter = DefaultFileFilter()
 
@@ -55,7 +56,7 @@ class Yoba:
         self.clock = Clock()
         # todo maybe move command buffer to tracer?
         # self._tracer = SimpleTracer(self.command_buffer, self.session_name, f_filter, self.clock, self.outgoingQueue)
-        self._tracer = NativeTracer(session_name, self.outgoingQueue)
+        self._tracer = NativeTracer(session_name, self.outgoingQueue, f_filter)
         self.outgoingQueue.start()
 
         self.outgoingQueue.tracing_will_start(self.session_name)

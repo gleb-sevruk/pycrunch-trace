@@ -14,10 +14,8 @@ class TraceSession:
     excluded_files : Set[str]
     environment_during_run: dict
     event_buffer: List[Any]
-    session_name: str
 
-    def __init__(self, session_name):
-        self.session_name = session_name
+    def __init__(self):
         self.files_in_session = set()
         self.excluded_files = set()
         self.environment_during_run = dict()
