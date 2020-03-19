@@ -2,11 +2,16 @@ import sys
 import uuid
 from pathlib import Path
 
-from pycrunch_tracer.client.command_buffer import DequeCommandBuffer, ArrayCommandBuffer
+from pycrunch_tracer.client.command_buffer import ArrayCommandBuffer
 from pycrunch_tracer.client.networking import event_queue
 from pycrunch_tracer.filters import CustomFileFilter
 from pycrunch_tracer.oop import File, Clock, SafeFilename
 from pycrunch_tracer.tracing.inline_profiler import inline_profiler_instance
+
+import pyximport
+pyximport.install()
+from pycrunch_tracer.native.native_tracer import NativeTracer
+
 from pycrunch_tracer.tracing.simple_tracer import SimpleTracer
 
 
@@ -49,7 +54,8 @@ class Yoba:
 
         self.clock = Clock()
         # todo maybe move command buffer to tracer?
-        self._tracer = SimpleTracer(self.command_buffer, self.session_name, f_filter, self.clock, self.outgoingQueue)
+        # self._tracer = SimpleTracer(self.command_buffer, self.session_name, f_filter, self.clock, self.outgoingQueue)
+        self._tracer = NativeTracer(session_name, self.outgoingQueue)
         self.outgoingQueue.start()
 
         self.outgoingQueue.tracing_will_start(self.session_name)
@@ -84,16 +90,17 @@ class Yoba:
 
     def stop(self):
         sys.settrace(None)
+
         inline_profiler_instance.print_timings()
         # import pydevd_pycharm
         # pydevd_pycharm.settrace('localhost', port=44441, stdoutToServer=True, stderrToServer=True)
         print('tracing complete, saving results')
         self.is_tracing = False
-        self._tracer.session.buffer_became_available(self.command_buffer)
         # snapshot.save('a', self.command_buffer)
         local = False
         # local = True
         if local:
+            self._tracer.session.buffer_became_available(self.command_buffer)
             self._tracer.session.save()
 
         self._tracer.flush_outstanding_events()

@@ -3,6 +3,12 @@ from queue import Queue, Empty
 
 from pycrunch_tracer.client.networking.commands import EventsSlice, StopCommand, AbstractNetworkCommand, StartCommand
 from pycrunch_tracer.client.networking.strategies.local_write_strategy import LocalRecordingStrategy
+
+import sys
+import pyximport
+pyximport.install()
+from pycrunch_tracer.client.networking.strategies.native_write_strategy import NativeLocalRecordingStrategy
+
 from pycrunch_tracer.client.networking.strategies.network_strategy import AbstractRecordingStrategy, OverWireRecordingStrategy
 
 import logging
@@ -39,11 +45,13 @@ class ClientQueueThread:
         self.is_connected = False
         self.outgoingQueue = Queue()
         self.is_thread_running = False
-        current_strategy = 'local'
+        current_strategy = 'native_local'
         if current_strategy == 'network':
             self._strategy = OverWireRecordingStrategy()
         if current_strategy == 'local':
             self._strategy = LocalRecordingStrategy()
+        if current_strategy == 'native_local':
+            self._strategy = NativeLocalRecordingStrategy()
 
     def tracing_will_start(self, session_id: str):
         self.ensure_thread_started()
@@ -119,6 +127,9 @@ class ClientQueueThread:
                 logger.info('Ex while getting message from queue')
                 print('===!!! Ex while getting message from queue')
                 print(str(ex))
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                print(exc_type, fname, exc_tb.tb_lineno)
                 continue
         # end while
         print('Thread stopped')

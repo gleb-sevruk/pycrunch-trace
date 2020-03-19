@@ -14,7 +14,7 @@ def another_function(input_argument):
 def million_of_calls():
     # 20000 = 300008
     max_events = 10
-    max_events = 100
+    max_events = 100000
     for x in range(max_events):
         another_function(x)
 
@@ -30,4 +30,4 @@ print('after', end)
 print('diff', end - start)
 
 my_yoba.stop()
-print(my_yoba._tracer.simulation.simulated_code())
+# print(my_yoba._tracer.simulation.simulated_code())

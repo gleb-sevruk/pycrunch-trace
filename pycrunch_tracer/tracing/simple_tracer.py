@@ -54,7 +54,6 @@ class SimpleTracer:
 
     def simple_tracer(self, frame: models.Frame, event: str, arg):
         entered_at = self.clock.now()
-
         self.process_events(entered_at, event, frame, arg)
         # self.simulation.save_for_simulator(frame, event, arg)
 

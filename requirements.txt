@@ -8,3 +8,4 @@ jsonpickle
 wheel
 PyYAML
 protobuf==3.11.3
+Cython
