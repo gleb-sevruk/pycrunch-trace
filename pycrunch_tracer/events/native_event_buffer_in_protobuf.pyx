@@ -1,3 +1,4 @@
+from io import FileIO
 from typing import Union, Dict
 
 from pycrunch_tracer.events.base_event import Event
@@ -10,6 +11,7 @@ from pycrunch_tracer.tracing.file_map import FileMap
 cdef class NativeEventBufferInProtobuf:
     cdef object files
     cdef object event_buffer
+    cdef object store_file_contents
 
     def __init__(self, event_buffer, files: Dict[str, int]):
         self.files = files
@@ -59,6 +61,7 @@ cdef class NativeEventBufferInProtobuf:
             current_file.id = file_id
             current_file.file = filename
             session.files.append(current_file)
+
 
     cdef pb_event_from_py(self, NativeCodeEvent e):
         cdef NativeVariable v

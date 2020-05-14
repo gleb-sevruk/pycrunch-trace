@@ -6,6 +6,7 @@ from pycrunch_tracer.proto import message_pb2
 
 
 class ChunkedTrace:
+    # size in bytes; this return 4 on my machine
     header_size = struct.calcsize("i")
 
     def __init__(self, filename: Path):

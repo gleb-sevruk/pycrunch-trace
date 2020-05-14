@@ -5,6 +5,7 @@ from pycrunch_tracer.server.incoming_traces import incoming_traces
 from pycrunch_tracer.server.trace_persistance import TracePersistence
 
 
+
 class LocalRecordingStrategy(AbstractRecordingStrategy):
     def __init__(self):
         self.persistence = TracePersistence()
@@ -26,6 +27,8 @@ class LocalRecordingStrategy(AbstractRecordingStrategy):
         bytes_to_disk = EventBufferInProtobuf(x.events, x.files).as_bytes()
 
         self.persistence.flush_chunk(x.session_id, bytes_to_disk)
+
+
 
     def clean(self):
         #  nothing to clean

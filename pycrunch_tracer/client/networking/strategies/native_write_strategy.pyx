@@ -1,7 +1,10 @@
-from pycrunch_tracer.client.networking.commands import EventsSlice
+from pycrunch_tracer.client.networking.commands import EventsSlice, FileContentSlice
 from pycrunch_tracer.client.networking.strategies.abstract_strategy import AbstractRecordingStrategy
 
 import pyximport
+
+from pycrunch_tracer.events.file_contents_in_protobuf import FileContentsInProtobuf
+
 pyximport.install()
 from pycrunch_tracer.events.native_event_buffer_in_protobuf import NativeEventBufferInProtobuf
 
@@ -30,6 +33,14 @@ class NativeLocalRecordingStrategy(AbstractRecordingStrategy):
         bytes_to_disk = NativeEventBufferInProtobuf(x.events, x.files).as_bytes()
 
         self.persistence.flush_chunk(x.session_id, bytes_to_disk)
+
+    def files_slice(self, x: FileContentSlice):
+        bytes_to_disk = FileContentsInProtobuf(x.files).as_bytes()
+
+        self.persistence.update_file_header(x.session_id)
+        self.persistence.flush_chunk(x.session_id, bytes_to_disk)
+
+
 
     def clean(self):
         #  nothing to clean

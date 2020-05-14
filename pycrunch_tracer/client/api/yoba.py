@@ -105,6 +105,7 @@ class Yoba:
             self._tracer.session.save()
 
         self._tracer.flush_outstanding_events()
+        self._tracer.finalize()
 
         self.outgoingQueue.tracing_did_complete(self.session_name)
             # self._tracer.session.save()

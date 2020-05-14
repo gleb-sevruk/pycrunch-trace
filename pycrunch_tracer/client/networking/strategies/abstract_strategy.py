@@ -1,4 +1,4 @@
-from pycrunch_tracer.client.networking.commands import EventsSlice
+from pycrunch_tracer.client.networking.commands import EventsSlice, FileContentSlice
 
 
 class AbstractRecordingStrategy:
@@ -12,6 +12,9 @@ class AbstractRecordingStrategy:
         pass
 
     def recording_slice(self, x: EventsSlice):
+        pass
+
+    def files_slice(self, x: FileContentSlice):
         pass
 
     def clean(self):

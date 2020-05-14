@@ -1,7 +1,7 @@
 import time
 import collections
 
-from pycrunch_tracer.client.networking.commands import EventsSlice
+from pycrunch_tracer.client.networking.commands import EventsSlice, FileContentSlice
 from pycrunch_tracer.file_system.trace_session import TraceSession
 from pycrunch_tracer.tracing.file_map import FileMap
 from pycrunch_tracer.native.native_models cimport NativeCodeEvent, NativeExecutionCursor, NativeVariables, NativeVariable, NativeStackFrame
@@ -306,6 +306,11 @@ cdef class NativeTracer:
         # self.perf.print_avg_time()
         #
         self.queue.put_events(EventsSlice(self.session_name, self.event_number, old_buffer, self.file_map.files.copy()))
+
+
+
+    def finalize(self):
+         self.queue.put_file_slice(FileContentSlice(self.session_name, self.file_map.files.copy()))
         # self.event_number += 1
 
     cdef flush_queue_if_full(self):

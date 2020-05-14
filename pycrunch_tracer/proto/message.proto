@@ -3,7 +3,15 @@ message TraceSession {
     repeated TraceEvent events = 1;
     repeated StackFrame stack_frames = 2;
     repeated File files = 3;
+}
 
+message FilesInSession {
+  repeated FileContent files = 1;
+}
+
+message FileContent {
+    int32 id = 1;
+    bytes content = 2;
 }
 
 message TraceEvent {

@@ -24,6 +24,14 @@ class EventsSlice(AbstractNetworkCommand):
         self.command_name = 'EventsSlice'
         self.session_id = session_id
 
+class FileContentSlice(AbstractNetworkCommand):
+    files: Dict[str, int]
+
+    def __init__(self, session_id: str, files: Dict[str, int]):
+        self.command_name = 'FileContentSlice'
+        self.files = files
+        self.session_id = session_id
+
 
 class StopCommand(AbstractNetworkCommand):
     def __init__(self, session_id: str):
