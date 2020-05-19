@@ -1,3 +1,5 @@
+from time import sleep
+
 import requests
 
 from pycrunch_tracer.client.api.yoba import Yoba
@@ -23,6 +25,6 @@ yoba.start('request_exce2',profile_name='default.profile.yaml')
 some_method()
 
 yoba.stop()
-
+sleep(10)
 # print(yoba.command_buffer)
 # x = 1

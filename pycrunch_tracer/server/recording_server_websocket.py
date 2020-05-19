@@ -10,7 +10,6 @@ from pycrunch_tracer.file_system.trace_session import TraceSession
 from pycrunch_tracer.filters import CustomFileFilter
 from pycrunch_tracer.oop import Directory, WriteableFile
 from pycrunch_tracer.oop.file import File
-from pycrunch_tracer.serialization import to_string
 from pycrunch_tracer.session import active_clients
 from pycrunch_tracer.session.snapshot import snapshot
 import pickle

@@ -56,6 +56,7 @@ class Yoba:
         self.clock = Clock()
         # todo maybe move command buffer to tracer?
         # self._tracer = SimpleTracer(self.command_buffer, self.session_name, f_filter, self.clock, self.outgoingQueue)
+        # TODO windows test
         self._tracer = NativeTracer(session_name, self.outgoingQueue, f_filter)
         self.outgoingQueue.start()
 
