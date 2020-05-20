@@ -17,7 +17,6 @@ import pickle
 
 import logging
 
-from .AsyncWriterQueue import AsyncWriterQueue
 from .incoming_traces import incoming_traces
 from .state import connections
 from ..config import config
@@ -57,58 +56,7 @@ async def new_recording(req, sid):
     # await sio.emit('reply', event_buffer)
 
 total_bytes = 0
-my_queue = AsyncWriterQueue()
-my_queue.start_thread_if_not_running()
 
-
-async def complete_event_stream(req):
-    global my_queue
-    qqq: AsyncWriterQueue = my_queue
-
-    sess_id = req.get("session_id")
-    logger.info(f'complete_event_stream, {sess_id}')
-
-    qqq.recording_will_complete(sess_id)
-
-
-@shared.tracer_socket_server.event
-async def tracing_node_event(sid, req):
-    global total_bytes
-    action: str = req.get('action')
-    logger.info(f'WebSocket tracing_node_event: {action}')
-    if action == 'events_stream_will_start':
-        await event_stream_will_start(req)
-    elif action == 'events_stream':
-        await process_partial_events_buffer(req)
-    if action == 'events_stream_did_complete':
-        await complete_event_stream(req)
-
-
-async def event_stream_will_start(req):
-    global my_queue
-    qqq: AsyncWriterQueue = my_queue
-    session_id = req.get('session_id')
-    qqq.recording_will_start(session_id)
-
-
-async def process_partial_events_buffer(req):
-    global my_queue
-    qqq: AsyncWriterQueue = my_queue
-
-    event_number = req.get("event_number")
-    logger.info(f'stream: {event_number}')
-    sess_id = req.get("session_id")
-    logger.info(f'  session_id: {sess_id}')
-    size_in_current = req.get("payload_size")
-    events_in_payload = req.get("events_in_payload")
-    event_number = req.get("event_number")
-
-    print('events_in_payload', events_in_payload)
-    incoming_traces.did_receive_more_events(sess_id, events_in_payload)
-    qqq.add_chunk(event_number, sess_id, req.get("bytes"), events_in_payload)
-    logger.info(f'  payload_size: {size_in_current}')
-    # total_bytes += size_in_current
-    # logger.info(f'    so far : {HumanReadableByteSize(total_bytes)}')
 
 
 @shared.tracer_socket_server.event

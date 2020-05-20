@@ -2,7 +2,11 @@ from queue import Queue
 from typing import Dict, Any
 
 
-class PyCrunchTraceServerException(Exception):
+class PyCrunchTraceException(Exception):
+    pass
+
+
+class PyCrunchTraceServerException(PyCrunchTraceException):
     pass
 
 

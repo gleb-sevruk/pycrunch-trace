@@ -1,12 +1,8 @@
 from typing import Dict
 
-from pycrunch_tracer.tracing.file_map import FileMap
-
 
 class AbstractNetworkCommand:
     command_name: str
-
-zalupa = 0
 
 
 class StartCommand(AbstractNetworkCommand):

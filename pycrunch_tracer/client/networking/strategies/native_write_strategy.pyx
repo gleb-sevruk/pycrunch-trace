@@ -4,6 +4,7 @@ from pycrunch_tracer.client.networking.strategies.abstract_strategy import Abstr
 import pyximport
 
 from pycrunch_tracer.events.file_contents_in_protobuf import FileContentsInProtobuf
+from pycrunch_tracer.file_system import tags
 
 pyximport.install()
 from pycrunch_tracer.events.native_event_buffer_in_protobuf import NativeEventBufferInProtobuf
@@ -32,13 +33,19 @@ class NativeLocalRecordingStrategy(AbstractRecordingStrategy):
         incoming_traces.did_receive_more_events(x.session_id, len(x.events))
         bytes_to_disk = NativeEventBufferInProtobuf(x.events, x.files).as_bytes()
 
-        self.persistence.flush_chunk(x.session_id, bytes_to_disk)
+        self.persistence.flush_chunk(x.session_id, tags.TRACE_TAG_EVENTS, bytes_to_disk)
 
     def files_slice(self, x: FileContentSlice):
         bytes_to_disk = FileContentsInProtobuf(x.files).as_bytes()
 
-        self.persistence.update_file_header(x.session_id)
-        self.persistence.flush_chunk(x.session_id, bytes_to_disk)
+        self.persistence.update_file_header_files_section(x.session_id, len(bytes_to_disk))
+        self.persistence.flush_chunk(x.session_id, tags.TRACE_TAG_FILES, bytes_to_disk)
+
+        #  write json metadata
+        bytes_to_disk, dummy = self.persistence.get_metadata_bytes(x.session_id)
+
+        self.persistence.update_file_header_metadata_section(x.session_id, len(bytes_to_disk))
+        self.persistence.flush_chunk(x.session_id, tags.TRACE_TAG_METADATA,  bytes_to_disk)
 
 
 

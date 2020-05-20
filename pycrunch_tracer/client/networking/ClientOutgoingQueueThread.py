@@ -2,14 +2,15 @@ import threading
 from queue import Queue, Empty
 
 from pycrunch_tracer.client.networking.commands import EventsSlice, StopCommand, AbstractNetworkCommand, StartCommand, FileContentSlice
-from pycrunch_tracer.client.networking.strategies.local_write_strategy import LocalRecordingStrategy
 
 import sys
 import pyximport
+
+from pycrunch_tracer.client.networking.strategies.abstract_strategy import AbstractRecordingStrategy
+
 pyximport.install()
 from pycrunch_tracer.client.networking.strategies.native_write_strategy import NativeLocalRecordingStrategy
 
-from pycrunch_tracer.client.networking.strategies.network_strategy import AbstractRecordingStrategy, OverWireRecordingStrategy
 
 import logging
 
@@ -46,10 +47,6 @@ class ClientQueueThread:
         self.outgoingQueue = Queue()
         self.is_thread_running = False
         current_strategy = 'native_local'
-        if current_strategy == 'network':
-            self._strategy = OverWireRecordingStrategy()
-        if current_strategy == 'local':
-            self._strategy = LocalRecordingStrategy()
         if current_strategy == 'native_local':
             self._strategy = NativeLocalRecordingStrategy()
 
@@ -69,18 +66,16 @@ class ClientQueueThread:
         try:
             self.outgoingQueue.put_nowait(events)
         except Exception as e:
-            print('EXCEPTION')
+            print('EXCEPTION while put_events')
             print(e)
-            print('zalupa=' + str(events.zalupa))
 
     def put_file_slice(self, events: FileContentSlice):
         self.ensure_thread_started()
         try:
             self.outgoingQueue.put_nowait(events)
         except Exception as e:
-            print('EXCEPTION')
+            print('EXCEPTION while put_file_slice')
             print(e)
-            print('wtf=' + str(events))
 
     def tracing_did_complete(self, session_id):
         self.outgoingQueue.put_nowait(StopCommand(session_id))
@@ -111,23 +106,8 @@ class ClientQueueThread:
                 x: AbstractNetworkCommand = self.outgoingQueue.get(True, 3)
                 print(f'queue length {len(self.outgoingQueue.queue)}')
 
-
                 if x is not None:
-                    print(f'got evt {x.command_name}')
-                    if x.command_name == 'StartCommand':
-                        self._strategy.recording_start(x.session_id)
-
-                    if x.command_name == 'StopCommand':
-                        logger.info('got '+ x.command_name)
-                        self._strategy.recording_stop(x.session_id)
-                    if x.command_name == 'FileContentSlice':
-                        logger.info('got ' + x.command_name)
-                        self._strategy.files_slice(x)
-
-                    logger.info('Sending... '+ x.command_name)
-                    if x.command_name == 'EventsSlice':
-                        self._strategy.recording_slice(x)
-                        logger.info('Sent... '+ x.command_name)
+                    self.process_single_message(x)
             except Empty:
                 print('Timeout while waiting for new msg... Thread will stop for now')
                 break
@@ -146,6 +126,20 @@ class ClientQueueThread:
         self._strategy.clean()
         self.is_thread_running = False
 
+    def process_single_message(self, x: AbstractNetworkCommand):
+        print(f'got evt {x.command_name}')
+        if x.command_name == 'StartCommand':
+            self._strategy.recording_start(x.session_id)
+        if x.command_name == 'StopCommand':
+            logger.info('got ' + x.command_name)
+            self._strategy.recording_stop(x.session_id)
+        if x.command_name == 'FileContentSlice':
+            logger.info('got ' + x.command_name)
+            self._strategy.files_slice(x)
+        logger.info('Sending... ' + x.command_name)
+        if x.command_name == 'EventsSlice':
+            self._strategy.recording_slice(x)
+            logger.info('Sent... ' + x.command_name)
 
     def ensure_thread_started(self):
         if not self.is_thread_running:
