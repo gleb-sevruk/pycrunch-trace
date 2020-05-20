@@ -2,10 +2,11 @@ import io
 import shutil
 import struct
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
 
 import jsonpickle
 
+from pycrunch_tracer.file_system import tags
 from pycrunch_tracer.file_system.human_readable_size import HumanReadableByteSize
 from pycrunch_tracer.file_system.persisted_session import PersistedSession, TraceSessionMetadata
 from pycrunch_tracer.file_system.session_store import SessionStore
@@ -35,16 +36,17 @@ class TracePersistence:
         self.trace_files[session_id] = tf
         tf.write_header_placeholder()
 
-    def recording_complete(self, session_id):
-        self.write_metadata_file(session_id)
+    def recording_complete(self, session_id, files_included: List[str], files_excluded: List[str]):
+        metadata_bytes, metadata_file_path = self.get_metadata_bytes(session_id, files_included, files_excluded)
+        self.update_file_header_metadata_section(session_id, len(metadata_bytes))
+        self.flush_chunk(session_id, tags.TRACE_TAG_METADATA, metadata_bytes)
 
-    def write_metadata_file(self, session_id):
-        metadata_bytes, metadata_file_path = self.get_metadata_bytes(session_id)
         with io.FileIO(metadata_file_path, mode='w') as file:
             bytes_written = file.write(metadata_bytes)
             print(f'metadata saved to {metadata_file_path}')
 
-    def get_metadata_bytes(self, session_id):
+
+    def get_metadata_bytes(self, session_id, files_included: List[str], files_excluded: List[str]):
         dir_path = Path(self.rec_dir)
         rec_dir = dir_path.joinpath(session_id)
         x = SessionStore()
@@ -52,8 +54,8 @@ class TracePersistence:
         bytes_written = target_chunk_file.stat().st_size
         metadata_file_path = rec_dir.joinpath(PersistedSession.metadata_filename)
         meta = TraceSessionMetadata()
-        meta.files_in_session = list()
-        meta.excluded_files = list()
+        meta.files_in_session = files_included
+        meta.excluded_files = files_excluded
         meta.file_size_in_bytes = bytes_written
         meta.file_size_on_disk = str(HumanReadableByteSize(bytes_written))
         meta.events_in_session = incoming_traces.get_session_with_id(session_id).total_events

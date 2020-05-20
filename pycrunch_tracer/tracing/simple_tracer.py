@@ -32,7 +32,7 @@ class SimpleTracer:
         self.file_filter = file_filter
         self.should_record_variables = file_filter.should_record_variables()
         self.call_stack = CallStack()
-        self.session = TraceSession(session_name)
+        self.session = TraceSession()
         self.simulation = DisabledSimulatorSink()
         # self.simulation = SimulatorSink()
         self.file_map = FileMap()

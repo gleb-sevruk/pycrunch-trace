@@ -1,3 +1,5 @@
+from typing import List
+
 from pycrunch_tracer.client.networking.commands import EventsSlice, FileContentSlice
 from pycrunch_tracer.client.networking.strategies.abstract_strategy import AbstractRecordingStrategy
 
@@ -26,8 +28,11 @@ class NativeLocalRecordingStrategy(AbstractRecordingStrategy):
         incoming_traces.trace_will_start(session_id)
         self.persistence.initialize_file(session_id)
 
-    def recording_stop(self, session_id: str):
-        self.persistence.recording_complete(session_id)
+    def recording_stop(self, session_id: str, files_included: List[str], files_excluded: List[str]):
+          #  write json metadata
+
+
+        self.persistence.recording_complete(session_id, files_included, files_excluded)
 
     def recording_slice(self, x: EventsSlice):
         incoming_traces.did_receive_more_events(x.session_id, len(x.events))
@@ -41,11 +46,7 @@ class NativeLocalRecordingStrategy(AbstractRecordingStrategy):
         self.persistence.update_file_header_files_section(x.session_id, len(bytes_to_disk))
         self.persistence.flush_chunk(x.session_id, tags.TRACE_TAG_FILES, bytes_to_disk)
 
-        #  write json metadata
-        bytes_to_disk, dummy = self.persistence.get_metadata_bytes(x.session_id)
 
-        self.persistence.update_file_header_metadata_section(x.session_id, len(bytes_to_disk))
-        self.persistence.flush_chunk(x.session_id, tags.TRACE_TAG_METADATA,  bytes_to_disk)
 
 
 

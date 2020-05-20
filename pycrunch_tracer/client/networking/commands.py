@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 
 class AbstractNetworkCommand:
@@ -30,7 +30,9 @@ class FileContentSlice(AbstractNetworkCommand):
 
 
 class StopCommand(AbstractNetworkCommand):
-    def __init__(self, session_id: str):
+    def __init__(self, session_id: str, files_included: List[str], files_excluded: List[str]):
         self.command_name = 'StopCommand'
         self.session_id = session_id
+        self.files_included = files_included
+        self.files_excluded = files_excluded
 

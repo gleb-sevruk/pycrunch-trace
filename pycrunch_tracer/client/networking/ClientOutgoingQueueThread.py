@@ -7,6 +7,7 @@ import sys
 import pyximport
 
 from pycrunch_tracer.client.networking.strategies.abstract_strategy import AbstractRecordingStrategy
+from pycrunch_tracer.file_system.trace_session import TraceSession
 
 pyximport.install()
 from pycrunch_tracer.client.networking.strategies.native_write_strategy import NativeLocalRecordingStrategy
@@ -77,8 +78,14 @@ class ClientQueueThread:
             print('EXCEPTION while put_file_slice')
             print(e)
 
-    def tracing_did_complete(self, session_id):
-        self.outgoingQueue.put_nowait(StopCommand(session_id))
+    def tracing_did_complete(self, session_id, session: TraceSession):
+        self.outgoingQueue.put_nowait(
+            StopCommand(
+                session_id,
+                list(session.files_in_session.copy()),
+                list(session.excluded_files.copy()),
+            )
+        )
 
     def start(self):
         print(f'{os.getpid()} start')
@@ -132,7 +139,7 @@ class ClientQueueThread:
             self._strategy.recording_start(x.session_id)
         if x.command_name == 'StopCommand':
             logger.info('got ' + x.command_name)
-            self._strategy.recording_stop(x.session_id)
+            self._strategy.recording_stop(x.session_id, x.files_included, x.files_excluded)
         if x.command_name == 'FileContentSlice':
             logger.info('got ' + x.command_name)
             self._strategy.files_slice(x)

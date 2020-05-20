@@ -1,3 +1,5 @@
+from typing import List
+
 from pycrunch_tracer.client.networking.commands import EventsSlice, FileContentSlice
 
 
@@ -8,7 +10,7 @@ class AbstractRecordingStrategy:
     def recording_start(self, session_id: str):
         pass
 
-    def recording_stop(self, session_id: str):
+    def recording_stop(self, session_id: str, files_included: List[str], files_excluded: List[str]):
         pass
 
     def recording_slice(self, x: EventsSlice):
