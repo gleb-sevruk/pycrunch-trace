@@ -71,6 +71,7 @@ class ClientQueueThread:
             print(e)
 
     def put_file_slice(self, events: FileContentSlice):
+        print('put_file_slice')
         self.ensure_thread_started()
         try:
             self.outgoingQueue.put_nowait(events)
@@ -79,6 +80,8 @@ class ClientQueueThread:
             print(e)
 
     def tracing_did_complete(self, session_id, session: TraceSession):
+        print('tracing_did_complete')
+        self.ensure_thread_started()
         self.outgoingQueue.put_nowait(
             StopCommand(
                 session_id,
@@ -88,7 +91,7 @@ class ClientQueueThread:
         )
 
     def start(self):
-        print(f'{os.getpid()} start')
+        print(f'start thread dispather queue with pid: {os.getpid()}')
         if self.is_thread_running:
             return
 

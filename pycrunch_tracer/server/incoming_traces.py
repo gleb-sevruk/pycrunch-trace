@@ -26,7 +26,7 @@ class IncomingTraces:
         current = self.get_session_with_id(session_id)
         current.add_events(events_count)
 
-    def get_session_with_id(self, session_id):
+    def get_session_with_id(self, session_id) -> TraceInProgress:
         return self.sessions_by_id[session_id]
 
     def delete_possible_old_session(self, session_id):

@@ -1,6 +1,7 @@
 import io
 import shutil
 import struct
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List
 
@@ -58,7 +59,10 @@ class TracePersistence:
         meta.excluded_files = files_excluded
         meta.file_size_in_bytes = bytes_written
         meta.file_size_on_disk = str(HumanReadableByteSize(bytes_written))
-        meta.events_in_session = incoming_traces.get_session_with_id(session_id).total_events
+        trace_in_progress = incoming_traces.get_session_with_id(session_id)
+        meta.events_in_session = trace_in_progress.total_events
+        meta.start_time = trace_in_progress.started_at
+        meta.end_time = datetime.utcnow()
         meta.name = str(session_id)
         result = jsonpickle.dumps(meta, unpicklable=False)
         metadata_bytes = result.encode('utf-8')

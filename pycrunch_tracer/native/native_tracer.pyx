@@ -308,11 +308,12 @@ cdef class NativeTracer:
         self.queue.put_events(EventsSlice(self.session_name, self.event_number, old_buffer, self.file_map.files.copy()))
 
     def finalize(self):
-         self.queue.put_file_slice(FileContentSlice(self.session_name, self.file_map.files.copy()))
+        print('finalizing native tracer')
+        self.queue.put_file_slice(FileContentSlice(self.session_name, self.file_map.files.copy()))
 
-         self.queue.tracing_did_complete(
-                self.session_name,
-                self.session,
+        self.queue.tracing_did_complete(
+            self.session_name,
+            self.session,
         )
 
     cdef flush_queue_if_full(self):

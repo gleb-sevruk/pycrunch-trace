@@ -18,10 +18,14 @@ def yoba(session_name_or_func=None, *decorator_args, **decorator_kws):
                 session_name = session_name_or_func
             pycrunch_tracer = Yoba()
             pycrunch_tracer.start(session_name)
-
-            results = func(*args, **kws)
-            pycrunch_tracer.stop()
-            return results
+            try:
+                results = func(*args, **kws)
+                return results
+            except Exception as e:
+                message_code = str(e)
+                raise
+            finally:
+                pycrunch_tracer.stop()
 
         return wrapper
 
