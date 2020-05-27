@@ -1,0 +1,5 @@
+include pycrunch_trace/logging-configuration.yaml
+include pycrunch_trace/pycrunch-profiles/default.profile.yaml
+
+global-include *.pyx
+global-include *.pxd

@@ -44,7 +44,7 @@ class TracePersistence:
 
         with io.FileIO(metadata_file_path, mode='w') as file:
             bytes_written = file.write(metadata_bytes)
-            print(f'metadata saved to {metadata_file_path}')
+            print(f'metadata saved to {metadata_file_path.absolute()}')
 
 
     def get_metadata_bytes(self, session_id, files_included: List[str], files_excluded: List[str]):

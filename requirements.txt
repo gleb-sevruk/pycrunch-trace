@@ -1,10 +1,11 @@
-python-socketio==4.4.0
-python-socketio[client]==4.4.0
+# python-socketio==4.4.0
+# python-socketio[client]==4.4.0
 
-aiohttp==3.6.2
-aiohttp-devtools
-aiohttp_debugtoolbar
-jsonpickle
+# aiohttp==3.6.2
+# aiohttp-devtools
+# aiohttp_debugtoolbar
+# jsonpickle
+
 wheel
 PyYAML
 protobuf==3.11.3
