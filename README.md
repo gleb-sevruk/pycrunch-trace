@@ -38,3 +38,5 @@ Optional session_name can be also passed to decorator:
 Use web app for replaying recording:
 
 http://app.pytrace.com/
+
+(Replays are not sent anywhere and processed entirely in-memory)
