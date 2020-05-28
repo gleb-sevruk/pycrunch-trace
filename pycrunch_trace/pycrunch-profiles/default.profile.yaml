@@ -1,4 +1,6 @@
 exclusions:
+  - pycrunch_trace/client/api/trace_decorator.py
+  - pycrunch_trace/client/api/trace.py
 ##- /Library/Frameworks/Python.framework/Versions/3.6/
 #- Workbook.py
 #- /Users/gleb/venv/ba-admin/lib/python3.6/site-packages/setuptools-39.1.0
@@ -10,7 +12,7 @@ exclusions:
 ##- /Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/
 ##- /Library/Frameworks/Python.framework/Versions/3.6/lib/python3.6/genericpath.py
 ##- /Users/gleb/venv/ba-admin/lib/python3.6/site-packages/django/template/base.py
-- <
+  - <
 ##- /Users/gleb/venv/PyCrunch/lib/python3.6/site-packages/
 #- /Users/gleb/venv/pycrunch_tracing2/lib/python3.6/site-packages/pluggy
 #- <todo_get_canonical_file from google
