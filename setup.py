@@ -2,7 +2,7 @@ import setuptools
 from distutils.core import setup
 
 setup(name='pycrunch-trace',
-      version='0.1.4',
+      version='0.1.5',
       description='PyCrunch Time Travel Debugger',
       url='http://github.com/gleb-sevruk/pycrunch-trace',
       author='Gleb Sevruk',
