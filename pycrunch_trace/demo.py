@@ -42,5 +42,5 @@ sys.settrace(trace_calls)
 result = sum(1, 2)
 print(result)
 
-print('--- poshel naxoi')
+print('--- end')
 
