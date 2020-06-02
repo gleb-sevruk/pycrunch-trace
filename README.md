@@ -1,9 +1,9 @@
 # Quick start
 
 
-[Interactive Demo](http://app.pytrace.com/?open=v0.1-interactive-demo)
+[Interactive Demo](https://app.pytrace.com/?open=v0.1-interactive-demo)
 
-[Documentation](http://beta.pytrace.com/docs/trace-viewer)
+[Documentation](https://pytrace.com)
 
 `pip install pycrunch-trace`
 
