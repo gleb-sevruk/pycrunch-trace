@@ -51,8 +51,7 @@ async def shutdown(loop, signal=None):
 
 def handle_exception(loop, context):
     # context["message"] will always be there; but context["exception"] may not
-    print('PTrace Server: !!!PISOS')
-    print('PTrace Server: handle_exception')
+    print('PTrace Server: !!! Handling Exception')
     msg = context.get("exception", context["message"])
     print('error was : ' + str(msg))
 

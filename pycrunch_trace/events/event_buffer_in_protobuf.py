@@ -27,7 +27,7 @@ class EventBufferInProtobuf:
                     frame.line = -1
                     frame.file = ''
                     frame.function_name = '??'
-                    print('suka')
+                    print('cannot find line for stack')
                     print(e.stack)
                 else:
                     frame.line = e.stack.line

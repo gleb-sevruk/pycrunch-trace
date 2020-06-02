@@ -52,7 +52,7 @@ def write_once(target_file, index):
     if not target_file.exists():
         target_mode = 'w'
     with io.FileIO(target_file, target_mode) as file_to_write:
-        bytes_to_write = b'zalupa' + str(index).encode('utf-8')
+        bytes_to_write = b'testing_text' + str(index).encode('utf-8')
 
         length_of_message = len(bytes_to_write)
         header_bytes = struct.pack("i", length_of_message)
