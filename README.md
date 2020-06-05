@@ -1,9 +1,14 @@
-# Quick start
+# UI Overview
 
+![PyTrace UI](https://hsto.org/webt/vp/im/xd/vpimxdvufmcmirahmktwpii79vw.png)
+
+
+# Quick start
 
 [Interactive Demo](https://app.pytrace.com/?open=v0.1-interactive-demo)
 
 [Documentation](https://pytrace.com)
+
 
 `pip install pycrunch-trace`
 
@@ -38,5 +43,8 @@ Optional session_name can be also passed to decorator:
 Use web app for replaying recording:
 
 http://app.pytrace.com/
+
+In case if you want to run UI locally, instead of using hosted version:
+[Link for web app source code](https://github.com/gleb-sevruk/pycrunch-tracing-webui)
 
 (Replays are not sent anywhere and processed entirely in-memory)
