@@ -4,7 +4,8 @@ from . import AbstractFileFilter
 
 
 class DefaultFileFilter(AbstractFileFilter):
-    def should_trace(self, filename: str) -> bool:
+    def should_trace(self, filename):
+        # type: (str) -> bool
         # start or end with
         exclusions = (
             '/Users/gleb/code/pycrunch_tracing/',

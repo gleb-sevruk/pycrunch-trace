@@ -1,5 +1,12 @@
 import threading
-from queue import Queue, Empty
+
+import six
+
+if six.PY3:
+    from queue import Queue, Empty
+if six.PY2:
+    from Queue import Queue, Empty
+
 
 from pycrunch_trace.client.networking.commands import EventsSlice, StopCommand, AbstractNetworkCommand, StartCommand, FileContentSlice
 
@@ -36,12 +43,12 @@ import os
 class ClientQueueThread:
     available_recording_strategies = ['network', 'local']
 
-    is_thread_running: bool
-    _counter: int
-    _strategy: AbstractRecordingStrategy
+    is_thread_running = None #type: bool
+    _counter= None #type: int
+    _strategy= None #type: AbstractRecordingStrategy
 
     def __init__(self):
-        print(f'PID: {os.getpid()} ClientQueueThread init')
+        # print(f'PID: {os.getpid()} ClientQueueThread init')
         self._counter = 0
         self.so_far = 0
         self.is_connected = False
@@ -51,7 +58,8 @@ class ClientQueueThread:
         if current_strategy == 'native_local':
             self._strategy = NativeLocalRecordingStrategy()
 
-    def tracing_will_start(self, session_id: str):
+    def tracing_will_start(self, session_id):
+        # type: (str) -> ()
         self.ensure_thread_started()
         try:
             self.outgoingQueue.put_nowait(StartCommand(session_id))
@@ -60,9 +68,10 @@ class ClientQueueThread:
             print(e)
 
 
-    def put_events(self, events: EventsSlice):
+    def put_events(self, events):
+        # type: (EventsSlice) -> ()
         self.so_far +=  len(events.events)
-        print(f'{events.session_id} - put_events: so far: {self.so_far}')
+        # print(f'{events.session_id} - put_events: so far: {self.so_far}')
         self.ensure_thread_started()
         try:
             self.outgoingQueue.put_nowait(events)
@@ -70,7 +79,8 @@ class ClientQueueThread:
             print('EXCEPTION while put_events')
             print(e)
 
-    def put_file_slice(self, events: FileContentSlice):
+    def put_file_slice(self, events):
+        # type: (FileContentSlice) -> ()
         print('put_file_slice')
         self.ensure_thread_started()
         try:
@@ -79,7 +89,8 @@ class ClientQueueThread:
             print('EXCEPTION while put_file_slice')
             print(e)
 
-    def tracing_did_complete(self, session_id, session: TraceSession):
+    def tracing_did_complete(self, session_id, session):
+        # type: (str, TraceSession) -> ()
         print('tracing_did_complete')
         self.ensure_thread_started()
         self.outgoingQueue.put_nowait(
@@ -91,11 +102,11 @@ class ClientQueueThread:
         )
 
     def start(self):
-        print(f'start thread dispather queue with pid: {os.getpid()}')
+        # print(f'start thread dispather queue with pid: {os.getpid()}')
         if self.is_thread_running:
             return
 
-        print('socketio init')
+        # print('socketio init')
         x = threading.Thread(target=self.thread_proc, args=(42,))
         # x.setDaemon(True)
         x.setDaemon(False)
@@ -113,8 +124,8 @@ class ClientQueueThread:
         while True:
             logger.info('outgoingQueue.get: Waiting for message...')
             try:
-                x: AbstractNetworkCommand = self.outgoingQueue.get(True, 3)
-                print(f'queue length {len(self.outgoingQueue.queue)}')
+                x = self.outgoingQueue.get(True, 3)  # type: AbstractNetworkCommand
+                print('queue length '+ str(len(self.outgoingQueue.queue)))
 
                 if x is not None:
                     self.process_single_message(x)
@@ -128,6 +139,10 @@ class ClientQueueThread:
                 print('===!!! Ex while getting message from queue')
                 print(str(ex))
                 exc_type, exc_obj, exc_tb = sys.exc_info()
+                print(exc_type)
+                print(exc_obj)
+                print(exc_tb)
+
                 fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
                 print(exc_type, fname, exc_tb.tb_lineno)
                 continue
@@ -136,8 +151,9 @@ class ClientQueueThread:
         self._strategy.clean()
         self.is_thread_running = False
 
-    def process_single_message(self, x: AbstractNetworkCommand):
-        print(f'got evt {x.command_name}')
+    def process_single_message(self, x):
+        # type: (AbstractNetworkCommand) -> ()
+        print('got evt ' + x.command_name)
         if x.command_name == 'StartCommand':
             self._strategy.recording_start(x.session_id)
         if x.command_name == 'StopCommand':
@@ -156,4 +172,4 @@ class ClientQueueThread:
             self.start()
 
 
-event_queue: ClientQueueThread = ClientQueueThread()
+event_queue = ClientQueueThread()  # type: ClientQueueThread

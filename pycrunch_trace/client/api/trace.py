@@ -12,12 +12,12 @@ import pyximport
 pyximport.install()
 from pycrunch_trace.native.native_tracer import NativeTracer
 
-from pycrunch_trace.tracing.simple_tracer import SimpleTracer
+# from pycrunch_trace.tracing.simple_tracer import SimpleTracer
 
 
 class Trace:
-    clock: Clock
-    _tracer: SimpleTracer
+    _tracer = None  # type: SimpleTracer
+    clock = None  # type: Clock
 
     def __init__(self):
         self.default_host = 'http://0.0.0.0:8080'
@@ -30,10 +30,12 @@ class Trace:
         self.host = None
         self.outgoingQueue = None
 
-    def generate_session_name(self) -> str:
+    def generate_session_name(self):
+        # type: () -> str
         return str(uuid.uuid4())
 
-    def start(self, session_name: str = None, host: str = None, profile_name: str = None):
+    def start(self, session_name = None, host = None, profile_name = None):
+        # type: (str, str, str) -> ()
 
         if self.is_tracing:
             raise Exception('PyCrunch tracer ERROR: tracing already started')

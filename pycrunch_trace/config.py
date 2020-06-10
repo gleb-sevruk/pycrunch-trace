@@ -14,10 +14,12 @@ class TracerConfig:
         # return Path('/Volumes/Kingston/pycrunch-trace')
         return Path.joinpath(self.working_directory, 'pycrunch-recordings')
 
-    def set_engine_directory(self, engine_directory: str):
+    def set_engine_directory(self, engine_directory):
+        # type: (str) -> ()
         self.engine_directory = engine_directory
 
-    def set_package_directory(self, package_directory: str):
+    def set_package_directory(self, package_directory):
+        # type: (str) -> ()
         self.package_directory = package_directory
 
 config = TracerConfig()

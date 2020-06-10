@@ -9,11 +9,13 @@ class ChunkedTrace:
     # size in bytes; this return 4 on my machine
     header_size = struct.calcsize("i")
 
-    def __init__(self, filename: Path):
+    def __init__(self, filename):
+        # type: (Path) -> ()
         self.filename = filename
 
 
-    def events(self) -> list:
+    def events(self):
+        # type: () -> list
         file_map = dict()
         entire_session = message_pb2.TraceSession()
         events_so_far = 0
@@ -21,11 +23,11 @@ class ChunkedTrace:
             while True:
                 header_bytes = file_to_read.read(ChunkedTrace.header_size)
                 if len(header_bytes) <= 0:
-                    print(f' -- Read to end')
+                    print(' -- Read to end')
 
                     break
                 next_chunk_length = struct.unpack('i', header_bytes)[0]
-                print(f'next_chunk_length {next_chunk_length}')
+                print('next_chunk_length' + str(next_chunk_length))
 
                 read_bytes = file_to_read.read(next_chunk_length)
                 interrim = message_pb2.TraceSession()
@@ -37,9 +39,9 @@ class ChunkedTrace:
 
                 for stack_frame in interrim.stack_frames:
                     entire_session.stack_frames.append(stack_frame)
-                print(f'total stack_frames {len(entire_session.stack_frames)}')
+                # print(f'total stack_frames {len(entire_session.stack_frames)}')
                 events_so_far += len(interrim.events)
-                print(f'total events {events_so_far}')
+                # print(f'total events {events_so_far}')
                 for event in interrim.events:
                     entire_session.events.append(event)
 

@@ -1,13 +1,17 @@
 from pathlib import Path
-from typing import Union
+import six
+
+if six.PY3:
+    from typing import Union
 
 from .file import File
 
 
 class Directory:
-    path: Path
+    path = None #type: Path
 
-    def __init__(self, path: Union[str, Path]):
+    def __init__(self, path):
+        #type (Union[str, Path]) ->
         if type(path) == str:
             self.path = Path(path)
         elif isinstance(path, Path):
@@ -23,18 +27,19 @@ class Directory:
                 result.append(maybe_be_folder.name)
         return result
 
-    def files(self, extension: str):
+    def files(self, extension):
+        #type (str) -> list
         if not self._exists():
             return []
 
         result = []
-        for file in self.path.glob(f'*.{extension}'):
+        for file in self.path.glob('*.' + extension):
             result.append(File(file))
         return result
 
     def _ensure_created(self):
         if not self._exists():
-            self.path.mkdir(exist_ok=True)
+            self.path.mkdir()
 
     def _exists(self):
         return self.path.exists()

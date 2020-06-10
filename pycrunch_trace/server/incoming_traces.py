@@ -1,4 +1,6 @@
-from typing import Dict, Any
+import six
+if six.PY3:
+    from typing import Dict, Any
 
 import logging
 
@@ -10,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class IncomingTraces:
-    sessions_by_id: Dict[str, TraceInProgress]
+    sessions_by_id = None #type: Dict[str, TraceInProgress]
 
     def __init__(self):
         self.sessions_by_id = dict()
@@ -26,7 +28,8 @@ class IncomingTraces:
         current = self.get_session_with_id(session_id)
         current.add_events(events_count)
 
-    def get_session_with_id(self, session_id) -> TraceInProgress:
+    def get_session_with_id(self, session_id):
+        # type: (str) -> TraceInProgress
         return self.sessions_by_id[session_id]
 
     def delete_possible_old_session(self, session_id):
@@ -37,4 +40,4 @@ class IncomingTraces:
     def log(self, msg):
         logger.info(msg)
 
-incoming_traces: IncomingTraces = IncomingTraces()
+incoming_traces = IncomingTraces() #type: IncomingTraces

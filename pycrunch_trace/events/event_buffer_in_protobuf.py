@@ -1,13 +1,16 @@
-from typing import Union, Dict
+import six
+if six.PY3:
+    from typing import Union, Dict
 
 from pycrunch_trace.events.base_event import Event
 from pycrunch_trace.proto import message_pb2
 
 
 class EventBufferInProtobuf:
-    files: Dict[str, int]
+    files = None #type: Dict[str, int]
 
-    def __init__(self, event_buffer, files: Dict[str, int]):
+    def __init__(self, event_buffer, files):
+        #type: (Dict[str, int]) -> ()
         self.files = files
         self.event_buffer = event_buffer
 
@@ -56,7 +59,8 @@ class EventBufferInProtobuf:
             current_file.file = filename
             session.files.append(current_file)
 
-    def pb_event_from_py(self, e: Event):
+    def pb_event_from_py(self, e):
+        # type: (Event) -> object
         evt = message_pb2.TraceEvent()
         evt.event_name = e.event_name
         evt.ts = e.ts

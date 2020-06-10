@@ -20,4 +20,5 @@ exclusions:
 #- /Users/gleb/venv/pycrunch_tracing2/lib/python3.6/site-packages/attr
 profile_name: default.profile.yaml
 trace_variables: true
+#trace_variables: false
 #method: sampling

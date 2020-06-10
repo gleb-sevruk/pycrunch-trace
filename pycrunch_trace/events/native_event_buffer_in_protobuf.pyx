@@ -1,5 +1,7 @@
 from io import FileIO
-from typing import Union, Dict
+import six
+if six.PY3:
+    from typing import Union, Dict
 
 from pycrunch_trace.events.base_event import Event
 

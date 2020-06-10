@@ -1,4 +1,6 @@
-from typing import List
+import six
+if six.PY3:
+    from typing import List
 
 from pycrunch_trace.client.networking.commands import EventsSlice, FileContentSlice
 from pycrunch_trace.client.networking.strategies.abstract_strategy import AbstractRecordingStrategy
@@ -28,8 +30,9 @@ class NativeLocalRecordingStrategy(AbstractRecordingStrategy):
         incoming_traces.trace_will_start(session_id)
         self.persistence.initialize_file(session_id)
 
-    def recording_stop(self, session_id: str, files_included: List[str], files_excluded: List[str]):
-          #  write json metadata
+    def recording_stop(self, session_id, files_included, files_excluded):
+        # type: (str, List[str], List[str]) -> ()
+        #  write json metadata
 
 
         self.persistence.recording_complete(session_id, files_included, files_excluded)

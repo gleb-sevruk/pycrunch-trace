@@ -1,4 +1,9 @@
-import time
+import six
+
+if six.PY3:
+    from time import perf_counter
+if six.PY2:
+    from backports.time_perf_counter import perf_counter
 
 
 class Clock:
@@ -10,7 +15,7 @@ class Clock:
         pass
 
     def now(self):
-        return (time.perf_counter() - self.started_at) * 1000
+        return (perf_counter() - self.started_at) * 1000
 
     def _system_clock(self):
-        return time.perf_counter()
+        return perf_counter()

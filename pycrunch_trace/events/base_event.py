@@ -1,7 +1,8 @@
-from abc import ABC, abstractmethod
+from abc import ABCMeta
 
 
-class Event(ABC):
+class Event:
+    __metaclass__ = ABCMeta
     # timestamp of event
-    event_name: str
-    ts: float
+    event_name = None  # type: str
+    ts = None  # type: float

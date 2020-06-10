@@ -13,6 +13,7 @@ setup(name='pycrunch-trace',
       download_url='https://github.com/gleb-sevruk/pycrunch-trace/archive/v0.1.0.tar.gz',
       setup_requires=['wheel', 'Cython'],
       install_requires=[
+          'backports.time_perf_counter; python_version < "3.3"'
           'Cython',
           'jsonpickle',
           'PyYAML',

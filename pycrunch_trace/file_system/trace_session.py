@@ -1,19 +1,19 @@
-from datetime import datetime
+import six
 from pathlib import Path
-from typing import List, Set, Any
+if six.PY3:
+    from typing import List, Set, Any
 
-from pycrunch_trace.events.base_event import Event
 from pycrunch_trace.file_system.session_store import SessionStore
 
 
 
 
 class TraceSession:
-    recording_directory : Path
-    files_in_session: Set[str]
-    excluded_files : Set[str]
-    environment_during_run: dict
-    event_buffer: List[Any]
+    recording_directory  = None  #type: Path
+    files_in_session = None  #type: Set[str]
+    excluded_files  = None  #type: Set[str]
+    environment_during_run = None  #type: dict
+    event_buffer = None  #type: List[Any]
 
     def __init__(self):
         self.files_in_session = set()
@@ -24,10 +24,12 @@ class TraceSession:
     def buffer_became_available(self, event_buffer):
         self.event_buffer = event_buffer
 
-    def did_enter_traceable_file(self, filename: str):
+    def did_enter_traceable_file(self, filename):
+        # type: (str) -> ()
         self.files_in_session.add(filename)
 
-    def will_skip_file(self, filename: str):
+    def will_skip_file(self, filename):
+        # type: (str) -> ()
         self.excluded_files.add(filename)
 
     def save(self):

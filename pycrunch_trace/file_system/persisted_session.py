@@ -2,8 +2,11 @@ import io
 import json
 import pickle
 from datetime import datetime
+
 from pathlib import Path
-from typing import List
+import six
+if six.PY3:
+    from typing import List
 
 import jsonpickle
 
@@ -18,27 +21,28 @@ logger = logging.getLogger(__name__)
 
 class TraceSessionMetadata:
     # time in UTC
-    start_time: datetime
-    end_time: datetime
+    start_time  = None #type: datetime
+    end_time  = None #type: datetime
     # size in bytes
-    file_size_in_bytes: int
-    file_size_on_disk: str
-    files_in_session: List[str]
+    file_size_in_bytes  = None #type: int
+    file_size_on_disk  = None #type: str
+    files_in_session  = None #type: List[str]
 
-    events_in_session: int
+    events_in_session  = None #type: int
 
-    working_directory: str
+    working_directory  = None #type: str
 
-    name: str
+    name  = None #type: str
 
 
 class LazyLoadedSession:
-    metadata: TraceSessionMetadata
-    trace_filename: Path
-    metadata_file: Path
-    raw_metadata: dict
+    metadata = None  #type: TraceSessionMetadata
+    trace_filename = None  #type: Path
+    metadata_file = None  #type: Path
+    raw_metadata = None  #type: dict
 
-    def __init__(self, buffer_file: Path, metadata_file: Path, chunked: bool):
+    def __init__(self, buffer_file, metadata_file, chunked):
+        # type: (Path, Path, bool) -> ()
         self.chunked = chunked
         self.trace_filename = buffer_file
         self.metadata_file = metadata_file
@@ -80,7 +84,8 @@ class LazyLoadedSession:
 
 
 class PersistedSession:
-    def __init__(self, session_directory: Path):
+    def __init__(self, session_directory):
+        # type: (Path) -> ()
         self.session_directory = session_directory
 
     metadata_filename = 'pycrunch-trace.meta.json'
@@ -106,7 +111,7 @@ class PersistedSession:
         meta.file_size_on_disk = str(HumanReadableByteSize(bytes_written))
         meta.events_in_session = len(event_buffer)
         meta.name = str(self.session_directory)
-        print(f'tracing --- protobuf binary array results saved to file {file_to_save}')
+        print('tracing --- protobuf binary array results saved to file ' + file_to_save)
 
         self.save_metadata(self.session_directory, meta)
 
@@ -115,18 +120,21 @@ class PersistedSession:
         # todo add multiple serialization plugin/options
         # return pickle.dumps(event_buffer)
 
-    def save_metadata(self, session_directory: Path, meta: TraceSessionMetadata):
+    def save_metadata(self, session_directory, meta):
+        # type: (Path, TraceSessionMetadata) -> ()
         metadata_file_path = session_directory.joinpath(self.metadata_filename)
 
         with io.FileIO(metadata_file_path, mode='w') as file:
             result = self.serialize_to_json(meta)
             bytes_written = file.write(result.encode('utf-8'))
 
-    def serialize_to_json(self, meta) -> str:
+    def serialize_to_json(self, meta):
+        # type: (object) -> str
         return jsonpickle.dumps(meta, unpicklable=False)
 
     @classmethod
-    def load_from_directory(cls, load_from_directory: Path) -> LazyLoadedSession:
+    def load_from_directory(cls, load_from_directory):
+        # type: (Path) -> LazyLoadedSession
         chunked = False
         joinpath = load_from_directory.joinpath(PersistedSession.recording_filename)
         if not joinpath.exists():

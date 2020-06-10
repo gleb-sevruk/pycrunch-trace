@@ -5,12 +5,13 @@ from ..oop import AbstractFile
 
 
 class CustomFileFilter(AbstractFileFilter):
-    exclusions: tuple
-    _trace_variables: bool
-    profile_file: AbstractFile
-    _loaded: bool
+    exclusions = None #type: tuple
+    _trace_variables = None #type: bool
+    profile_file = None #type: AbstractFile
+    _loaded = None #type: bool
 
-    def __init__(self, profile_file: AbstractFile):
+    def __init__(self, profile_file):
+        #type: (AbstractFile) -> ()
         self.profile_file = profile_file
         self._loaded = False
         self._trace_variables = True
@@ -20,7 +21,8 @@ class CustomFileFilter(AbstractFileFilter):
         self._ensure_loaded()
         return list(self.exclusions)
 
-    def should_trace(self, filename: str):
+    def should_trace(self, filename):
+        #type: (str) -> (bool)
         self._ensure_loaded()
         if filename.startswith(self.exclusions) or filename.endswith(self.exclusions):
             # print('should_trace: false - filename= '+filename)
@@ -54,7 +56,8 @@ class CustomFileFilter(AbstractFileFilter):
             if not self._trace_variables:
                 print('!! PyCrunch - Variables will not be recorded in session')
 
-    def should_record_variables(self) -> bool:
+    def should_record_variables(self):
+        #type: () -> bool
         self._ensure_loaded()
         return self._trace_variables
 

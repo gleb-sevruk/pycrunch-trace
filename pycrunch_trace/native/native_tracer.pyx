@@ -1,4 +1,10 @@
-import time
+import six
+
+if six.PY3:
+    from time import perf_counter
+if six.PY2:
+    from backports.time_perf_counter import perf_counter
+
 import collections
 
 from pycrunch_trace.client.networking.commands import EventsSlice, FileContentSlice, StopCommand
@@ -6,7 +12,12 @@ from pycrunch_trace.file_system.trace_session import TraceSession
 from pycrunch_trace.tracing.file_map import FileMap
 from pycrunch_trace.native.native_models cimport NativeCodeEvent, NativeExecutionCursor, NativeVariables, NativeVariable, NativeStackFrame
 
-allowed_types = [int, str, float, dict, type(None), bool]
+
+if six.PY3:
+    allowed_types = [int, str, float, dict, type(None), bool]
+if six.PY2:
+    allowed_types = [int, unicode, float, dict, type(None), bool]
+
 # allowed_types = [int, str, float,  type(None), bool]
 
 
@@ -120,6 +131,7 @@ cdef class NativeTracerPerf:
             print(f'{time_per_sample:.5f} ms avg call time overhead')
 
 cdef class NativeClock:
+
     cdef double started_at
 
     def __init__(self):
@@ -132,7 +144,7 @@ cdef class NativeClock:
         return (now_without_offset - self.started_at) * 1000
 
     cdef double _system_clock(self):
-        return time.perf_counter()
+        return perf_counter()
     pass
 
 cdef class NativeTracer:
@@ -269,6 +281,9 @@ cdef class NativeTracer:
             return str(current_type)
         # return 'a'
         # todo is this slowdown?
+        if current_type is str:
+            value
+            return value
         return str(value)
 
     cdef push_traceable_variables(self, frame, NativeVariables locals):

@@ -2,7 +2,9 @@ import io
 
 
 class WriteableFile:
-    def __init__(self, file_name: str, buffer: bytes):
+    def __init__(self, file_name, buffer):
+        # type (str, bytes) -> ()
+
         self.buffer = buffer
         self.file_name = file_name
 

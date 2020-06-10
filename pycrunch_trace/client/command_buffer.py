@@ -1,5 +1,4 @@
 from collections import deque
-from typing import List
 
 from pycrunch_trace.events.base_event import Event
 
@@ -12,7 +11,8 @@ class ArrayCommandBuffer:
     def add_event(self, evt):
         self._command_buffer.append(evt)
 
-    def finish_chunk(self) -> List[Event]:
+    def finish_chunk(self):
+        # type: () -> List[Event]
         old_buffer = self._command_buffer
         self._command_buffer = []
         return old_buffer
@@ -27,7 +27,8 @@ class DequeCommandBuffer:
     def add_event(self, evt):
         self._command_buffer.append(evt)
 
-    def finish_chunk(self) -> List[Event]:
+    def finish_chunk(self):
+        # type: () -> List[Event]
         old_buffer = self._command_buffer.copy()
         self._command_buffer.clear()
         return list(old_buffer)

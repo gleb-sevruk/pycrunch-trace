@@ -1,7 +1,8 @@
 class SafeFilename:
-    possibly_unsafe_filename: str
+    possibly_unsafe_filename = None #type: str
 
-    def __init__(self, possibly_unsafe_filename: str):
+    def __init__(self, possibly_unsafe_filename):
+        # type: (str) -> ()
         self.possibly_unsafe_filename = possibly_unsafe_filename
 
     def __str__(self):

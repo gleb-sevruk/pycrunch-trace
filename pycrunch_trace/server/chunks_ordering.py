@@ -1,5 +1,12 @@
-from queue import Queue
-from typing import Dict, Any
+import six
+
+if six.PY3:
+    from queue import Queue
+if six.PY2:
+    from Queue import Queue
+
+if six.PY3:
+    from typing import Dict, Any
 
 
 class PyCrunchTraceException(Exception):
@@ -11,7 +18,8 @@ class PyCrunchTraceServerException(PyCrunchTraceException):
 
 
 class ReceivedChunks:
-    def __init__(self, session_id: str):
+    def __init__(self, session_id):
+        # type: (str) -> ()
         self.session_id = session_id
         self.received_chunks = set()
 
@@ -29,19 +37,19 @@ class ReceivedChunks:
     def throw_if_previous_chunk_lost(self, chunk_number):
         current_max = max(self.received_chunks)
         if chunk_number - 1 > current_max:
-            raise PyCrunchTraceServerException(f'{self.session_id}: received {chunk_number} but {current_max} is expected for')
+            raise PyCrunchTraceServerException('{self.session_id}: received {chunk_number} but {current_max} is expected for')
 
     def throw_if_first_chunk_lost(self, chunk_number):
             if chunk_number != 1:
-                raise PyCrunchTraceServerException(f'{self.session_id}: received {chunk_number} but expected chunk #1')
+                raise PyCrunchTraceServerException('{self.session_id}: received {chunk_number} but expected chunk #1')
 
     def throw_if_chunk_already_received(self, chunk_number):
         if chunk_number in self.received_chunks:
-            raise PyCrunchTraceServerException(f'already received {chunk_number} for {self.session_id}')
+            raise PyCrunchTraceServerException('already received {chunk_number} for {self.session_id}')
 
 
 class ChunksOrdering:
-    order_by_session: Dict[str, ReceivedChunks]
+    order_by_session = None #type: Dict[str, ReceivedChunks]
 
     def __init__(self):
         self.order_by_session = dict()
@@ -52,7 +60,7 @@ class ChunksOrdering:
 
     def did_receive_chunk(self, session_id, chunk_number):
         if session_id not in self.order_by_session:
-            raise PyCrunchTraceServerException(f'{session_id}: not found')
+            raise PyCrunchTraceServerException('{session_id}: not found')
 
         self.order_by_session[session_id].did_receive_chunk(chunk_number)
 
@@ -61,4 +69,4 @@ class ChunksOrdering:
         del self.order_by_session[session_id]
 
 
-chunks_ordering: ChunksOrdering = ChunksOrdering()
+chunks_ordering = ChunksOrdering() # type: ChunksOrdering

@@ -3,7 +3,10 @@ import shutil
 import struct
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List
+import six
+
+if six.PY3:
+    from typing import Dict, List
 
 import jsonpickle
 
@@ -17,7 +20,7 @@ from pycrunch_trace.server.incoming_traces import incoming_traces
 
 
 class TracePersistence:
-    trace_files: Dict[str, TraceFile]
+    trace_files = None #type: Dict[str, TraceFile]
 
     def __init__(self):
         x = SessionStore()
@@ -26,28 +29,32 @@ class TracePersistence:
         self.trace_files = dict()
         pass
 
-    def initialize_file(self, session_id: str):
+    def initialize_file(self, session_id):
+        # type: (str) -> ()
+
         dir_path = Path(self.rec_dir)
         session_id = session_id
         rec_dir = dir_path.joinpath(session_id)
         if rec_dir.exists():
-            shutil.rmtree(rec_dir)
+            shutil.rmtree(str(rec_dir))
 
         tf = TraceFile(session_id, self.get_chunked_trace_output_file(session_id))
         self.trace_files[session_id] = tf
         tf.write_header_placeholder()
 
-    def recording_complete(self, session_id, files_included: List[str], files_excluded: List[str]):
+    def recording_complete(self, session_id, files_included, files_excluded):
+        # type: (str,  List[str], List[str]) -> ()
         metadata_bytes, metadata_file_path = self.get_metadata_bytes(session_id, files_included, files_excluded)
         self.update_file_header_metadata_section(session_id, len(metadata_bytes))
         self.flush_chunk(session_id, tags.TRACE_TAG_METADATA, metadata_bytes)
 
-        with io.FileIO(metadata_file_path, mode='w') as file:
+        with io.FileIO(str(metadata_file_path), mode='w') as file:
             bytes_written = file.write(metadata_bytes)
-            print(f'metadata saved to {metadata_file_path.absolute()}')
+            print('metadata saved to' + str(metadata_file_path.absolute()))
 
 
-    def get_metadata_bytes(self, session_id, files_included: List[str], files_excluded: List[str]):
+    def get_metadata_bytes(self, session_id, files_included, files_excluded):
+        # type: (str,  List[str], List[str]) -> (object, Path)
         dir_path = Path(self.rec_dir)
         rec_dir = dir_path.joinpath(session_id)
         x = SessionStore()
@@ -68,7 +75,8 @@ class TracePersistence:
         metadata_bytes = result.encode('utf-8')
         return metadata_bytes, metadata_file_path
 
-    def flush_chunk(self, session_id, tag_id: int, bytes_to_write):
+    def flush_chunk(self, session_id, tag_id, bytes_to_write):
+        # type: (str,  int, bytes) -> ()
         trace_file = self._get_trace_file_or_throw(session_id)
         trace_file.flush_chunk(tag_id, bytes_to_write)
 
@@ -91,10 +99,11 @@ class TracePersistence:
         trace_file.update_file_header_files_section(total_bytes)
 
 
-    def _get_trace_file_or_throw(self, session_id) -> TraceFile:
+    def _get_trace_file_or_throw(self, session_id):
+        # type: (str) -> TraceFile
         trace_file = self.trace_files.get(session_id)
         if not trace_file:
-            raise PyCrunchTraceException(f'Cannot find trace file with session id {session_id}')
+            raise PyCrunchTraceException('Cannot find trace file with session id ' + session_id)
         return trace_file
 
     def update_file_header_metadata_section(self, session_id, metadata_bytes_len):

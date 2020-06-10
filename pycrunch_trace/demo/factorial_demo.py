@@ -10,7 +10,8 @@ def my_factorial(num: int):
         return num * my_factorial(num - 1)
 
 yoba = Trace()
-yoba.start(session_name='factorial')
+
+yoba.start(session_name='factorial_x')
 
 my_factorial(10)
 

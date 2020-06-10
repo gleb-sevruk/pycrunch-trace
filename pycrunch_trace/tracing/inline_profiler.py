@@ -1,11 +1,15 @@
 from collections import deque, OrderedDict
-from typing import Dict, Any
+
+import six
+
+if six.PY3:
+    from typing import Dict, Any
 
 from pycrunch_trace.oop import Clock
 
 
 class InlineProfiler:
-    timings: Dict[str, float]
+    timings = None #type: Dict[str, float]
 
     def __init__(self):
         # method scope-> total time
@@ -21,7 +25,9 @@ class InlineProfiler:
     def exit_scope(self):
         self.execution_stack.pop()
 
-    def append_timing(self, scope: str, time_spent: float):
+    def append_timing(self, scope, time_spent):
+        # type: (str, float) -> ()
+
         stack___key = self.get_full_stack() + '.' + scope
         if not self.timings.get(stack___key):
             self.timings[stack___key] = time_spent
@@ -29,12 +35,12 @@ class InlineProfiler:
             self.timings[stack___key] += time_spent
 
     def print_timings(self):
-        print(f'----print_timings----')
+        print('----print_timings----')
         for (key, val) in self.timings.items():
-            print(f'{key}\t{val}')
+            print(str(key) + ' \t ' + str(val))
 
 
-inline_profiler_instance: InlineProfiler = InlineProfiler()
+inline_profiler_instance = InlineProfiler() # type InlineProfiler
 clock = Clock()
 
 class ProfilingScope():

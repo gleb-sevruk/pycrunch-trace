@@ -37,6 +37,6 @@ class Snapshot:
 
     def ensure_snapshot_folder_created(self):
         if not self.snapshot_directory.exists():
-            self.snapshot_directory.mkdir(exist_ok=True)
+            self.snapshot_directory.mkdir()
 
 snapshot = Snapshot()
