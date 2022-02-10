@@ -1,6 +1,8 @@
+import datetime
 import sys
 import uuid
 from pathlib import Path
+from typing import List
 
 from pycrunch_trace.client.command_buffer import ArrayCommandBuffer
 from pycrunch_trace.client.networking import event_queue
@@ -31,9 +33,10 @@ class Trace:
         self.outgoingQueue = None
 
     def generate_session_name(self) -> str:
-        return str(uuid.uuid4())
+        iso_time = datetime.datetime.now().replace(microsecond=0).isoformat()
+        return f'{iso_time}_{str(uuid.uuid4())[:5]}'
 
-    def start(self, session_name: str = None, host: str = None, profile_name: str = None):
+    def start(self, session_name: str = None, host: str = None, profile_name: str = None, additional_excludes: List[str] = None):
 
         if self.is_tracing:
             raise Exception('PyCrunch tracer ERROR: tracing already started')
@@ -41,14 +44,14 @@ class Trace:
         self.prepare_state(host, session_name)
         self.warn_if_another_tracing_set()
 
-        # self._client = network_client.TracingClient(self.host)
         if not profile_name:
             profile_name = 'default.profile.yaml'
         package_directory = Path(__file__).parent.parent.parent
-        f_filter = CustomFileFilter(File(package_directory.joinpath('pycrunch-profiles', profile_name)))
-        f_filter._ensure_loaded()
-        # else:
-        #     f_filter = DefaultFileFilter()
+        file_filter = CustomFileFilter(File(package_directory.joinpath('pycrunch-profiles', profile_name)))
+        file_filter._ensure_loaded()
+
+        if additional_excludes is not None:
+            file_filter.add_additional_exclusions(additional_excludes)
 
         self.start_queue()
 
@@ -56,7 +59,7 @@ class Trace:
         # todo maybe move command buffer to tracer?
         # self._tracer = SimpleTracer(self.command_buffer, self.session_name, f_filter, self.clock, self.outgoingQueue)
         # TODO windows test
-        self._tracer = NativeTracer(session_name, self.outgoingQueue, f_filter)
+        self._tracer = NativeTracer(self.session_name, self.outgoingQueue, file_filter)
         self.outgoingQueue.start()
 
         self.outgoingQueue.tracing_will_start(self.session_name)
@@ -81,7 +84,7 @@ class Trace:
 
     def prepare_state(self, host, session_name):
         if not session_name:
-            self.session_name = self.generate_session_name()
+            self.session_name = SafeFilename(self.generate_session_name()).__str__()
         else:
             self.session_name = SafeFilename(session_name).__str__()
         if host:
