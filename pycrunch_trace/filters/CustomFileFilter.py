@@ -1,3 +1,5 @@
+from typing import List
+
 import yaml
 
 from . import AbstractFileFilter
@@ -9,6 +11,7 @@ class CustomFileFilter(AbstractFileFilter):
     _trace_variables: bool
     profile_file: AbstractFile
     _loaded: bool
+
 
     def __init__(self, profile_file: AbstractFile):
         self.profile_file = profile_file
@@ -46,6 +49,15 @@ class CustomFileFilter(AbstractFileFilter):
             for e in exclusions:
                 tmp.add(e)
         self.exclusions = tuple(tmp)
+
+    def add_additional_exclusions(self, additional_excludes: List[str]):
+        if len(additional_excludes) <= 0:
+            return
+        exclusions_copy = set(self.exclusions)
+        for exclude in additional_excludes:
+            exclusions_copy.add(exclude)
+
+        self.exclusions = tuple(exclusions_copy)
 
     def load_variables(self, all):
         trace_vars = all.get('trace_variables')

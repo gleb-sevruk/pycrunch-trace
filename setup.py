@@ -2,7 +2,7 @@ import setuptools
 from distutils.core import setup
 
 setup(name='pycrunch-trace',
-      version='0.1.6',
+      version='0.2',
       description='PyCrunch Time Travel Debugger',
       url='https://pytrace.com/',
       author='Gleb Sevruk',
@@ -21,7 +21,8 @@ setup(name='pycrunch-trace',
           'Cython',
           'jsonpickle',
           'PyYAML',
-          'protobuf==3.11.3'
+          'protobuf>=3.11.3',
+          'jsonpickle',
       ],
       classifiers=[
           'Development Status :: 3 - Alpha',

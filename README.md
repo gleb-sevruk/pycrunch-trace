@@ -35,10 +35,45 @@ some_code()
 tracer.stop()
 ```
 
+
 Optional session_name can be also passed to decorator:
 ```python
 @trace('my_custom_recording_name')
 ``` 
+
+### Specifying custom folders/files to exclude 
+this will greatly speed-up profiler, however calls to the ignored directories will be ignored. 
+
+Exclusion will be considered if absolute file path either `starts_with` or `ends_with` with given stop-list. 
+
+```python
+from pycrunch_trace.client.api import Trace
+ 
+t = Trace()
+t.start(additional_excludes=[
+             '/Users/gleb/.venvs/pycrunch_trace'
+             '/Users/gleb/.pyenv/versions/3.6.15/',
+             'unwanted_file.py',
+        ])
+
+some_code()
+
+t.stop()
+
+```
+
+This is also possible via decorator:
+
+```python
+from pycrunch_trace.client.api import trace
+
+@trace(additional_excludes=['/Users/gleb/.venvs/pycrunch_trace'])
+def run():
+    some_code()
+```
+
+
+
 
 Use web app for replaying recording:
 
