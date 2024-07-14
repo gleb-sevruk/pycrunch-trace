@@ -12,7 +12,7 @@ cdef class NativeStackFrame:
     cdef int id
 
 cdef class NativeCodeEvent:
-    cpdef str event_name
+    cdef str event_name
     cdef NativeExecutionCursor cursor
     cdef NativeStackFrame stack
     cdef double ts
