@@ -15,9 +15,14 @@ class SessionStore:
     def all_sessions(self) -> List[str]:
         result = []
         self.ensure_recording_directory_created()
-        for maybe_be_folder in self.recording_directory.glob('*'):
-            if maybe_be_folder.is_dir():
-                result.append(maybe_be_folder.name)
+        
+        # Look for directories that contains the metadata file
+        # This supports both flat and date-organized structures
+        for metadata_file in self.recording_directory.rglob(PersistedSession.metadata_filename):
+            # The session name is the path relative to the recording directory
+            session_path = metadata_file.parent.relative_to(self.recording_directory)
+            result.append(str(session_path))
+            
         return result
 
     def load_session(self, session_name: str) -> LazyLoadedSession:
@@ -41,5 +46,5 @@ class SessionStore:
 
     def ensure_directory_created(self, directory: Path):
         if not directory.exists():
-            directory.mkdir(exist_ok=True)
+            directory.mkdir(parents=True, exist_ok=True)
 

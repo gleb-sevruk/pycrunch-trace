@@ -1,6 +1,9 @@
 import socketio
 
 from . import version
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class TracingClient:
@@ -15,38 +18,37 @@ class TracingClient:
 
         @self.sio.event
         def message(data):
-            print('CLIENT: I received a message!')
+            logger.debug('CLIENT: I received a message!')
 
         @self.sio.on('my message')
         def on_message(data):
-            print('CLIENT: I received a message!')
+            logger.debug('CLIENT: I received a message!')
 
         @self.sio.event
         def connect():
-            print("CLIENT: I'm connected!")
+            logger.info("CLIENT: I'm connected!")
 
         @self.sio.event
-        def connect_error():
-            print("CLIENT: The connection failed!")
+        def connect_error(data):
+            logger.error(f"CLIENT: The connection failed! {data}")
 
         @self.sio.event
         def disconnect():
-            print("CLIENT: I'm disconnected!")
+            logger.info("CLIENT: I'm disconnected!")
 
     def push_message(self, entire_tracing_sesssion):
         # dumps = pickle.dumps(entire_tracing_sesssion)
         # print(f'dumped {len(dumps)} bytes')
         try:
-            print(f' ...sending bytes')
+            logger.debug(f' ...sending bytes')
 
             self.sio.emit('event', dict(
                 action='new_recording',
                 # buffer=dumps,
             ))
-            print(f' ...sent')
+            logger.debug(f' ...sent')
         except Exception as e:
-            print('  -- !fail to send')
-            print(str(e))
+            logger.error('  -- !fail to send', exc_info=True)
 
     def disconnect(self):
 

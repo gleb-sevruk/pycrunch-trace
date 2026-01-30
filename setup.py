@@ -1,5 +1,4 @@
-import setuptools
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 setup(name='pycrunch-trace',
       version='0.3',
@@ -15,14 +14,14 @@ setup(name='pycrunch-trace',
           'record-and-replay debugging',
           'live coding',
       ],
-      packages=setuptools.find_packages(),
-      setup_requires=['wheel', 'Cython'],
+      packages=find_packages(),
       install_requires=[
-          'Cython',
-          'jsonpickle',
-          'PyYAML',
-          'protobuf>=3.11.3,<4',
-          'jsonpickle',
+          "cython",
+          "jsonpickle",
+          "protobuf>=3.11.3,<4.0.0",
+          "pyyaml",
+          "setuptools>=80.10.2",
+          "wheel>=0.46.3",
       ],
       classifiers=[
           'Development Status :: 3 - Alpha',

@@ -15,6 +15,10 @@ from pycrunch_trace.file_system.trace_file import TraceFile
 from pycrunch_trace.server.chunks_ordering import PyCrunchTraceException
 from pycrunch_trace.server.incoming_traces import incoming_traces
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class TracePersistence:
     trace_files: Dict[str, TraceFile]
@@ -44,7 +48,7 @@ class TracePersistence:
 
         with io.FileIO(metadata_file_path, mode='w') as file:
             bytes_written = file.write(metadata_bytes)
-            print(f'metadata saved to {metadata_file_path.absolute()}')
+            logger.info(f'Metadata successfully saved to: {metadata_file_path.absolute()}')
 
 
     def get_metadata_bytes(self, session_id, files_included: List[str], files_excluded: List[str]):

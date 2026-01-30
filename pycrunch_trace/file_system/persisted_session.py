@@ -106,7 +106,7 @@ class PersistedSession:
         meta.file_size_on_disk = str(HumanReadableByteSize(bytes_written))
         meta.events_in_session = len(event_buffer)
         meta.name = str(self.session_directory)
-        print(f'tracing --- protobuf binary array results saved to file {file_to_save}')
+        logger.info(f'Trace session data successfully saved to: {file_to_save}')
 
         self.save_metadata(self.session_directory, meta)
 
@@ -132,5 +132,5 @@ class PersistedSession:
         if not joinpath.exists():
             joinpath = load_from_directory.joinpath(PersistedSession.chunked_recording_filename)
             chunked = True
-        print(joinpath)
+        logger.debug(f'Loading session data from: {joinpath}')
         return LazyLoadedSession(joinpath, load_from_directory.joinpath(PersistedSession.metadata_filename), chunked)

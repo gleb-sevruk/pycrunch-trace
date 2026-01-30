@@ -1,0 +1,40 @@
+[project]
+name = "pycrunch-trace"
+version = "0.3"
+description = "PyCrunch Time Travel Debugger"
+readme = "README.md"
+authors = [
+    { name = "Gleb Sevruk", email = "gleb@pycrunch.com" }
+]
+license = { text = "MIT" }
+keywords = [
+    "tracing",
+    "debugging",
+    "time-travel debugging",
+    "record-and-replay debugging",
+    "live coding"
+]
+requires-python = ">=3.12"
+dependencies = [
+    "cython",
+    "jsonpickle",
+    "protobuf>=3.11.3,<4.0.0",
+    "pyyaml",
+    "setuptools",
+    "wheel",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Debuggers"
+]
+
+[project.urls]
+Homepage = "https://pytrace.com/"
+Source = "https://github.com/gleb-sevruk/pycrunch-trace/"
+Funding = "https://pycrunch.com/donate"
+
+[build-system]
+requires = ["setuptools", "cython"]
+build-backend = "setuptools.build_meta"

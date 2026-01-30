@@ -28,6 +28,11 @@ def test_read():
 
     header_size = struct.calcsize("i")
     target_file = directory__joinpath.joinpath(PersistedSession.chunked_recording_filename)
+    
+    # Ensure file exists for reading
+    if not target_file.exists():
+        test_write()
+        
     with io.FileIO(target_file, 'r') as file_to_read:
         while True:
             header_bytes = file_to_read.read(header_size)
@@ -40,11 +45,6 @@ def test_read():
             read_bytes = file_to_read.read(next_chunk_length)
             result = read_bytes.decode('utf-8')
             print(f'result {result}')
-
-    #
-    # write_once(target_file, 1)
-    # write_once(target_file, 2)
-    # write_once(target_file, 3)
 
 
 def write_once(target_file, index):

@@ -1,5 +1,8 @@
 import time
 import collections
+import logging
+
+logger = logging.getLogger(__name__)
 
 from pycrunch_trace.client.networking.commands import EventsSlice, FileContentSlice, StopCommand
 from pycrunch_trace.file_system.trace_session import TraceSession
@@ -114,10 +117,10 @@ cdef class NativeTracerPerf:
         should_print = True
         if should_print:
             time_per_sample = self.total_time / self.total_samples
-            print(f'total_samples - {self.total_samples}')
-            print(f'total overhead time - {round(self.total_time)} ms')
-            print(f'                      {self.total_time}')
-            print(f'{time_per_sample:.5f} ms avg call time overhead')
+            logger.debug(f'Total samples: {self.total_samples}')
+            logger.debug(f'Total overhead: {round(self.total_time)} ms')
+            logger.debug(f'Performance detail: {self.total_time}')
+            logger.debug(f'Average execution overhead: {time_per_sample:.5f} ms per call')
 
 cdef class NativeClock:
     cdef double started_at
@@ -300,7 +303,7 @@ cdef class NativeTracer:
 
     def flush_outstanding_events(self):
         self.perf.print_avg_time()
-        print(f'total events C: {self.event_buffer.count()}')
+        logger.debug(f'Total native events in buffer: {self.event_buffer.count()}')
 
         old_buffer = self.event_buffer.finish_chunk()
         # self.perf.print_avg_time()
@@ -308,7 +311,7 @@ cdef class NativeTracer:
         self.queue.put_events(EventsSlice(self.session_name, self.event_number, old_buffer, self.file_map.files.copy()))
 
     def finalize(self):
-        print('finalizing native tracer')
+        logger.info('Finalizing native tracer...')
         self.queue.put_file_slice(FileContentSlice(self.session_name, self.file_map.files.copy()))
 
         self.queue.tracing_did_complete(

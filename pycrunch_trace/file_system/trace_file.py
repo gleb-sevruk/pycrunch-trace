@@ -3,6 +3,9 @@ import struct
 from pathlib import Path
 
 from . import tags
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class TLV:
@@ -73,8 +76,8 @@ class TraceFile:
             file_to_write.write(Int64(total_bytes).bytes())
 
     def skip_to_free_header_chunk(self, file_to_write):
-        print('skip_to_free_header_chunk')
-        print(f'pos = {file_to_write.tell()}')
+        logger.debug('skip_to_free_header_chunk')
+        logger.debug(f'pos = {file_to_write.tell()}')
         int_size = struct.calcsize(">i")
         has_data = True
         while has_data:
@@ -89,7 +92,7 @@ class TraceFile:
             next_payload_length = struct.unpack('>i', buffer)[0]
             # skip to next record
             file_to_write.seek(next_payload_length, io.SEEK_CUR)
-        print(f'after pos = {file_to_write.tell()}')
+        logger.debug(f'after pos = {file_to_write.tell()}')
 
     def write_header_placeholder(self):
         target_mode = 'w'
@@ -108,8 +111,8 @@ class TraceFile:
         # SIG | [ Tag | Len | Val ]
 
         self.header.length = self.header_size
-        print(f'offse {self.header.offset}')
-        print(f'l {self.header.length}')
+        logger.debug(f'offset {self.header.offset}')
+        logger.debug(f'length {self.header.length}')
         file_to_write.write(Int32(tags.TRACE_TAG_HEADER).bytes())
         file_to_write.write(Int32(self.header_size).bytes())
 
@@ -121,8 +124,8 @@ class TraceFile:
         ppp = file_to_write.seek(
             self.header.offset + 0 + 4 + 4 + self.header.length, io.SEEK_SET
         )
-        print(f'hs={self.header_size}')
-        print(f'ppp={ppp}')
+        logger.debug(f'header_size={self.header_size}')
+        logger.debug(f'ppp={ppp}')
         # this is to make sure file will have 16kb allocated at the beginning
         self.write_signature(file_to_write)
 

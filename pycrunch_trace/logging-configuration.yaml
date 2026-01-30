@@ -2,19 +2,20 @@ version: 1
 formatters:
   simple:
     format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  pycrunch:
+    format: 'pycrunch-trace | %(asctime)s | %(levelname)-2s | %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'
   basic:
     format: '%(name)s - %(message)s'
 handlers:
   console:
     class: logging.StreamHandler
-    level: DEBUG
-    formatter: simple
+    level: INFO
+    formatter: pycrunch
     stream: ext://sys.stdout
 loggers:
-  pycrunch:
-    level: DEBUG
-  sampleLogger:
-    level: DEBUG
+  pycrunch_trace:
+    level: INFO
     handlers: [console]
     propagate: no
   werkzeug:
@@ -27,9 +28,3 @@ loggers:
 root:
   level: DEBUG
   handlers: [console]
-#  handlers: []
-
-#xx    x
-#xx    x
-#xx    x
-#xx    x

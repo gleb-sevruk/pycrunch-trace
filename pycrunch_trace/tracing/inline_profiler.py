@@ -1,5 +1,8 @@
 from collections import deque, OrderedDict
 from typing import Dict, Any
+import logging
+
+logger = logging.getLogger(__name__)
 
 from pycrunch_trace.oop import Clock
 
@@ -29,9 +32,9 @@ class InlineProfiler:
             self.timings[stack___key] += time_spent
 
     def print_timings(self):
-        print(f'----print_timings----')
+        logger.debug(f'----print_timings----')
         for (key, val) in self.timings.items():
-            print(f'{key}\t{val}')
+            logger.debug(f'{key}\t{val}')
 
 
 inline_profiler_instance: InlineProfiler = InlineProfiler()

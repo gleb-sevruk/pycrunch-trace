@@ -9,12 +9,16 @@ from pycrunch_trace.client.networking import event_queue
 from pycrunch_trace.filters import CustomFileFilter
 from pycrunch_trace.oop import File, Clock, SafeFilename
 from pycrunch_trace.tracing.inline_profiler import inline_profiler_instance
+from pycrunch_trace.config import config
 
 import pyximport
 pyximport.install()
 from pycrunch_trace.native.native_tracer import NativeTracer
 
 from pycrunch_trace.tracing.simple_tracer import SimpleTracer
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Trace:
@@ -39,7 +43,8 @@ class Trace:
     def start(self, session_name: str = None, host: str = None, profile_name: str = None, additional_excludes: List[str] = None):
 
         if self.is_tracing:
-            raise Exception('PyCrunch tracer ERROR: tracing already started')
+            logger.error('Tracing has already been started for this session.')
+            raise Exception('Tracing already started.')
 
         self.prepare_state(host, session_name)
         self.warn_if_another_tracing_set()
@@ -77,16 +82,27 @@ class Trace:
 
     def warn_if_another_tracing_set(self):
         if sys.gettrace():
-            # there is already trace
-            print('PyCrunch tracer WARNING:')
-            print('  -- there is already trace function set. ')
-            print('  -- continuing might result in errors ')
+            logger.warning('Another trace function is already set. Tracing might result in errors.')
 
     def prepare_state(self, host, session_name):
         if not session_name:
-            self.session_name = SafeFilename(self.generate_session_name()).__str__()
+            final_name = self.generate_session_name()
         else:
-            self.session_name = SafeFilename(session_name).__str__()
+            final_name = session_name
+            if config.keep_sessions:
+                # Append 5 chars UUID to ensure uniqueness
+                u = str(uuid.uuid4())[:5]
+                final_name = f"{final_name}_{u}"
+        
+        safe_name = SafeFilename(final_name).__str__()
+        
+        if config.organize_by_date:
+            # Create a structured date folder (e.g., 2026_01_29_22_47_04)
+            date_prefix = datetime.datetime.now().strftime('%Y_%m_%d_%H_%M_%S')
+            self.session_name = f"{date_prefix}/{safe_name}"
+        else:
+            self.session_name = safe_name
+            
         if host:
             self.host = host
         else:
@@ -98,7 +114,7 @@ class Trace:
         inline_profiler_instance.print_timings()
         # import pydevd_pycharm
         # pydevd_pycharm.settrace('localhost', port=44441, stdoutToServer=True, stderrToServer=True)
-        print('tracing complete, saving results')
+        logger.info('Tracing complete. Saving results...')
         self.is_tracing = False
         # snapshot.save('a', self.command_buffer)
         local = False
@@ -109,6 +125,11 @@ class Trace:
 
         self._tracer.flush_outstanding_events()
         self._tracer.finalize()
+        
+        # Ensure all events are flushed via the queue thread
+        if self.outgoingQueue:
+            logger.info("Waiting for the event queue to flush before exit...")
+            self.outgoingQueue.join()
 
             # self._tracer.session.save()
 

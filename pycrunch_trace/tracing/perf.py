@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 class TracerPerf:
     def __init__(self):
         self.total_samples = 1
@@ -14,6 +18,6 @@ class TracerPerf:
         should_print = True
         if should_print:
             time_per_sample = self.total_time / self.total_samples
-            print(f'total_samples - {self.total_samples}')
-            print(f'total overhead time - {self.total_time}')
-            print(f'{time_per_sample:.5f} ms avg call time overhead')
+            logger.debug(f'total_samples - {self.total_samples}')
+            logger.debug(f'total overhead time - {self.total_time}')
+            logger.debug(f'{time_per_sample:.5f} ms avg call time overhead')

@@ -1,8 +1,11 @@
 import io
 import struct
 from pathlib import Path
+import logging
 
 from pycrunch_trace.proto import message_pb2
+
+logger = logging.getLogger(__name__)
 
 
 class ChunkedTrace:
@@ -21,25 +24,25 @@ class ChunkedTrace:
             while True:
                 header_bytes = file_to_read.read(ChunkedTrace.header_size)
                 if len(header_bytes) <= 0:
-                    print(f' -- Read to end')
+                    logger.debug(f' -- Read to end')
 
                     break
                 next_chunk_length = struct.unpack('i', header_bytes)[0]
-                print(f'next_chunk_length {next_chunk_length}')
+                logger.debug(f'next_chunk_length {next_chunk_length}')
 
                 read_bytes = file_to_read.read(next_chunk_length)
                 interrim = message_pb2.TraceSession()
                 try:
                     interrim.ParseFromString(read_bytes)
-                except Exception as eeeeeee:
-                    print(eeeeeee)
+                except Exception as e:
+                    logger.error(f"Error parsing TraceSession: {e}", exc_info=True)
                     raise
 
                 for stack_frame in interrim.stack_frames:
                     entire_session.stack_frames.append(stack_frame)
-                print(f'total stack_frames {len(entire_session.stack_frames)}')
+                logger.debug(f'total stack_frames {len(entire_session.stack_frames)}')
                 events_so_far += len(interrim.events)
-                print(f'total events {events_so_far}')
+                logger.debug(f'total events {events_so_far}')
                 for event in interrim.events:
                     entire_session.events.append(event)
 

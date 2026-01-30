@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 @shared.tracer_socket_server.event
 async def connect(sid, environ):
-    print("connect -", sid)
+    logger.info(f"Tracer client connected (SID: {sid})")
     # print("connect - environ", environ)
     product_name = environ.get('HTTP_PRODUCT')
     if product_name:
@@ -44,14 +44,14 @@ async def connect(sid, environ):
 
 
 async def new_recording(req, sid):
-    logger.info('Started saving new recording')
+    logger.debug('Processing new trace recording...')
     event_buffer_bytes = req.get('buffer')
     # todo this is double loading
     if (event_buffer_bytes):
         x: TraceSession = pickle.loads(event_buffer_bytes)
         x.save()
 
-    logger.info('Recording saved successfully')
+    logger.info('New recording saved successfully.')
     await load_sessions(None)
     # await sio.emit('reply', event_buffer)
 
@@ -63,7 +63,7 @@ total_bytes = 0
 async def event(sid, req):
     # print(req)
     action: str = req.get('action')
-    logger.info(f'WebSocket event: {action}')
+    logger.debug(f'WebSocket action received: {action}')
 
     if action == 'load_buffer':
         pass
@@ -80,14 +80,14 @@ async def event(sid, req):
     elif action == 'save_profile_details':
         await save_profile_details(req, sid)
     elif action == 'new_recording':
-        print('new_recording')
+        logger.debug('new_recording')
         await new_recording(req, sid)
     else:
         await shared.tracer_socket_server.emit('reply_unknown', room=sid)
 
 
 async def load_sessions(sid):
-    logging.debug('Loading sessions')
+    logger.debug('Loading available sessions...')
     store = SessionStore()
     all_names = store.all_sessions()
     result = []
@@ -104,30 +104,30 @@ async def load_sessions(sid):
 
         result.append(metadata)
 
-    logging.debug(f'Sessions loaded, sending back to client {sid}')
+    logger.debug(f'Session list loaded. Sending update to client (SID: {sid})')
     await shared.tracer_socket_server.emit('session_list_loaded', result, room=sid)
     pass
 
 
 async def load_single_session(req, sid):
-    logger.info('begin: load_single_session...')
+    logger.debug('Beginning load_single_session execution...')
     store = SessionStore()
     session_name = req.get('session_name')
-    logging.info(f'Loading session {session_name}')
+    logger.info(f'Loading session: {session_name}')
     ses = store.load_session(session_name)
 
     # await sio.emit('reply', to_string(buffer), room=sid)
     try:
 
-        logger.info('sending reply...')
+        logger.debug('Preparing response...')
 
         file_as_bytes = ses.load_buffer().SerializeToString()
-        logger.info('bytes loaded...')
+        logger.debug('Buffer loaded into memory...')
         #  todo maybe send back in chunks?
         await shared.tracer_socket_server.emit('reply', data=file_as_bytes
                                                , room=sid
                                                )
-        logger.info('Event sent')
+        logger.info(f'Session data sent to client (SID: {sid}).')
 
     except Exception as ex:
         logger.exception('Failed to load session ' + session_name, exc_info=ex)
@@ -156,7 +156,7 @@ async def load_profile_details(req, sid):
     d = Directory(config.package_directory.joinpath('pycrunch-profiles'))
     profile_name = req.get('profile_name')
     joinpath = config.package_directory.joinpath('pycrunch-profiles').joinpath(profile_name)
-    print(joinpath)
+    logger.debug(joinpath)
     fff = CustomFileFilter(File(joinpath))
 
     raw = fff.all_exclusions()
@@ -170,7 +170,7 @@ async def load_profile_details(req, sid):
 async def load_profiles_event(req, sid):
     d = Directory(config.package_directory.joinpath('pycrunch-profiles'))
     res = d.files('yaml')
-    print(res)
+    logger.debug(res)
     raw = []
     for f in res:
         raw.append(f.short_name())
@@ -179,7 +179,7 @@ async def load_profiles_event(req, sid):
 
 @shared.tracer_socket_server.event
 async def disconnect(sid):
-    logging.info(f'disconnect {sid}')
+    logger.info(f'Tracer client disconnected (SID: {sid})')
     if connections.tracer_did_disconnect(sid):
         logging.debug(f' -- sending notification about disconnected tracker {sid}')
         await shared.tracer_socket_server.emit('front', dict(
